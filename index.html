@@ -686,52 +686,189 @@
     font-weight: 500;
   }
 
-  /* ====== PRODUCT MANAGEMENT ====== */
-  .product-controls {
-    display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
-    margin-bottom: 24px;
+  /* ====== 1MG STYLE PRODUCTS ====== */
+
+  /* Section wrapper */
+  #products { background: #f4f6f9; padding: 60px 5%; }
+
+  /* Top bar */
+  .prod-topbar {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 20px; flex-wrap: wrap;
   }
-  .search-box {
+
+  /* Search */
+  .prod-search {
+    flex: 1; min-width: 240px;
     display: flex; align-items: center; gap: 10px;
-    background: white; border: 1px solid #dde5ed;
-    border-radius: 10px; padding: 10px 16px;
-    flex: 1; min-width: 220px; transition: border-color 0.2s;
+    background: white; border: 1.5px solid #e0e7ef;
+    border-radius: 10px; padding: 11px 16px;
+    transition: border-color 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   }
-  .search-box:focus-within { border-color: var(--teal); }
-  .search-box input {
-    border: none; outline: none; font-size: 0.9rem;
+  .prod-search:focus-within { border-color: #ff6f00; }
+  .prod-search input {
+    border: none; outline: none; font-size: 0.92rem;
     font-family: 'DM Sans', sans-serif; width: 100%;
-    background: transparent; color: var(--text);
+    background: transparent; color: #1a2a3a;
   }
-  .filter-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .prod-search input::placeholder { color: #aab; }
+
+  /* Sort dropdown */
+  .prod-sort {
+    background: white; border: 1.5px solid #e0e7ef; border-radius: 10px;
+    padding: 11px 14px; font-size: 0.85rem; font-family: 'DM Sans', sans-serif;
+    color: #1a2a3a; outline: none; cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+
+  /* Main layout: sidebar + grid */
+  .prod-layout {
+    display: flex; gap: 20px; align-items: flex-start;
+  }
+
+  /* Sidebar */
+  .prod-sidebar {
+    width: 210px; flex-shrink: 0;
+    background: white; border-radius: 14px;
+    border: 1px solid #e8edf2; padding: 20px 16px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+    position: sticky; top: 80px;
+  }
+  .prod-sidebar h4 {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: #999; margin-bottom: 12px;
+  }
+  .cat-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 10px; border-radius: 8px; cursor: pointer;
+    font-size: 0.85rem; color: #444; font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s; margin-bottom: 2px; border: none;
+    background: transparent; width: 100%; text-align: left;
+  }
+  .cat-item:hover { background: #fff7f0; color: #ff6f00; }
+  .cat-item.active { background: #fff3e8; color: #ff6f00; font-weight: 700; }
+  .cat-item .cat-count {
+    font-size: 0.72rem; background: #f0f4f8; color: #888;
+    padding: 2px 7px; border-radius: 10px; font-weight: 600;
+  }
+  .cat-item.active .cat-count { background: #ffe0c4; color: #ff6f00; }
+
+  /* Product count + results bar */
+  .prod-results-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .product-count { font-size: 0.85rem; color: #666; font-weight: 500; }
+
+  /* Grid */
+  .prod-main { flex: 1; min-width: 0; }
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    gap: 14px;
+  }
+
+  /* Card */
+  .product-card {
+    background: white; border-radius: 12px;
+    border: 1px solid #e8edf2;
+    transition: box-shadow 0.22s, transform 0.22s;
+    display: flex; flex-direction: column;
+    position: relative; overflow: hidden; cursor: pointer;
+  }
+  .product-card:hover {
+    box-shadow: 0 6px 24px rgba(0,0,0,0.11);
+    transform: translateY(-3px);
+  }
+
+  /* Discount badge — top-left red like 1mg */
+  .product-discount-badge {
+    position: absolute; top: 0; left: 0;
+    background: #e53935; color: white;
+    font-size: 0.65rem; font-weight: 800;
+    padding: 4px 9px; border-radius: 0 0 10px 0;
+    letter-spacing: 0.5px; z-index: 2;
+  }
+
+  /* Rx / OTC — top right */
+  .product-rx-corner {
+    position: absolute; top: 8px; right: 8px;
+    font-size: 0.62rem; font-weight: 700;
+    padding: 3px 7px; border-radius: 5px; z-index: 2;
+  }
+  .rx-yes-corner { background: #fff0f0; color: #c0392b; border: 1px solid #f5c6c6; }
+  .rx-no-corner  { background: #f0fff6; color: #1a9e4d; border: 1px solid #b2e0c3; }
+
+  /* Image area */
+  .product-img {
+    height: 150px; background: #f9fafb;
+    display: flex; align-items: center; justify-content: center;
+    border-bottom: 1px solid #f0f0f0; overflow: hidden;
+  }
+  .product-img img {
+    width: 100%; height: 100%;
+    object-fit: contain; padding: 12px;
+    transition: transform 0.3s;
+  }
+  .product-card:hover .product-img img { transform: scale(1.05); }
+
+  /* Info */
+  .product-info { padding: 12px 13px; flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .product-mfr  { font-size: 0.65rem; color: #ff6f00; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; }
+  .product-name { font-weight: 700; font-size: 0.87rem; color: #1a2a3a; line-height: 1.3; }
+  .product-pack { font-size: 0.72rem; color: #999; }
+  .product-desc { font-size: 0.74rem; color: #888; line-height: 1.4; margin-top: 2px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* Price */
+  .product-price-row { display: flex; align-items: baseline; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .product-price-final { font-size: 1.05rem; font-weight: 800; color: #1a2a3a; }
+  .product-price-mrp   { font-size: 0.76rem; color: #bbb; text-decoration: line-through; }
+  .product-price-save  { font-size: 0.7rem; color: #e53935; font-weight: 700; }
+
+  /* Footer button */
+  .product-footer {
+    padding: 10px 12px; border-top: 1px solid #f2f4f7;
+    display: flex; gap: 8px;
+  }
+  .product-wa-btn {
+    flex: 1; background: #25d366; color: white;
+    border: none; border-radius: 8px; padding: 9px 8px;
+    font-size: 0.78rem; font-weight: 700;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    text-decoration: none; transition: background 0.15s, transform 0.15s;
+  }
+  .product-wa-btn:hover { background: #1da851; transform: translateY(-1px); }
+
+  /* Filter btn (kept for other uses) */
   .filter-btn {
     background: white; border: 1px solid #dde5ed; border-radius: 20px;
     padding: 7px 16px; font-size: 0.8rem; font-weight: 500; cursor: pointer;
     font-family: 'DM Sans', sans-serif; color: var(--text-muted); transition: all 0.2s;
   }
   .filter-btn:hover, .filter-btn.active { background: var(--teal); border-color: var(--teal); color: white; }
+
   .btn-admin {
     background: var(--deep); color: white; border: none;
     padding: 10px 20px; border-radius: 8px; font-size: 0.85rem; font-weight: 600;
     cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; transition: background 0.2s;
   }
   .btn-admin:hover { background: var(--navy); }
-  .product-count { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; font-weight: 500; }
-  .product-card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); transition: transform 0.25s, box-shadow 0.25s; display: flex; flex-direction: column; }
-  .product-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(0,137,123,0.1); }
-  .product-img { height: 100px; background: linear-gradient(135deg, #e8f5e9, #b2dfdb); display: flex; align-items: center; justify-content: center; font-size: 40px; }
-  .product-info { padding: 14px; flex:1; display:flex; flex-direction:column; gap:4px; }
-  .product-name { font-weight: 600; font-size: 0.9rem; color: var(--text); }
-  .product-cat { font-size: 0.72rem; color: var(--teal); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-  .product-desc { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
-  .product-price { font-size: 1rem; font-weight: 700; color: var(--deep); margin-top: 6px; }
-  .product-footer { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-top: 1px solid var(--border); background: #fafcfe; }
-  .rx-badge { font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; }
+
+  .rx-badge { display: none; }
   .rx-yes { background: #fde8e8; color: #c0392b; }
-  .rx-no { background: #e8f5e9; color: #27ae60; }
-  .stock-info { font-size: 0.75rem; color: var(--text-muted); }
-  .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
+  .rx-no  { background: #e8f5e9; color: #27ae60; }
+
+  .empty-state { text-align: center; padding: 80px 20px; color: var(--text-muted); }
   .empty-state h3 { font-size: 1.2rem; margin: 10px 0 6px; color: var(--text); }
+
+  @media (max-width: 768px) {
+    .prod-sidebar { display: none; }
+    .prod-layout  { flex-direction: column; }
+    .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .product-img { height: 120px; }
+  }
   /* MODAL */
   .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
   .modal-box { background: white; border-radius: 16px; width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 80px rgba(0,0,0,0.25); animation: fadeUp 0.3s ease; }
@@ -2373,41 +2510,77 @@
 </section>
 
 <!-- PRODUCTS -->
-<section class="section" id="products">
-  <div class="section-label">Our Range</div>
-  <h2 class="section-title">Our Products</h2>
-  <p class="section-sub">Browse our complete range of medicines and healthcare products. Use filters to find what you need.</p>
+<section id="products">
+  <!-- Section header -->
+  <div style="background:#f4f6f9; padding:40px 5% 0;">
+    <div class="section-label">Our Range</div>
+    <h2 class="section-title" style="margin-bottom:6px;">Medicines & Healthcare Products</h2>
+    <p class="section-sub" style="margin-bottom:24px;">Genuine medicines at best prices. Filter by category or search below.</p>
 
-  <!-- Search & Filter Bar -->
-  <div class="product-controls">
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input type="text" id="searchInput" placeholder="Search by product name or category..." oninput="filterProducts()">
+    <!-- Top bar: search + sort + admin -->
+    <div class="prod-topbar">
+      <div class="prod-search">
+        <svg width="16" height="16" fill="none" stroke="#aab" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Search medicines, vitamins, healthcare products..." oninput="filterProducts()">
+      </div>
+      <select class="prod-sort" onchange="sortProducts(this.value)">
+        <option value="">Sort By</option>
+        <option value="name">Name A–Z</option>
+        <option value="price_low">Price: Low to High</option>
+        <option value="price_high">Price: High to Low</option>
+        <option value="discount">Discount</option>
+      </select>
+      <button class="btn-admin" onclick="openAdminPanel()">⚙ Manage</button>
     </div>
-    <div class="filter-tabs" id="filterTabs">
-      <button class="filter-btn active" onclick="filterByCategory('All')">All</button>
-      <button class="filter-btn" onclick="filterByCategory('Prescription')">Prescription</button>
-      <button class="filter-btn" onclick="filterByCategory('OTC')">OTC</button>
-      <button class="filter-btn" onclick="filterByCategory('Ayurvedic')">Ayurvedic</button>
-      <button class="filter-btn" onclick="filterByCategory('Vitamins')">Vitamins</button>
-      <button class="filter-btn" onclick="filterByCategory('Baby Care')">Baby Care</button>
-      <button class="filter-btn" onclick="filterByCategory('Cardiac')">Cardiac</button>
-      <button class="filter-btn" onclick="filterByCategory('Surgical')">Surgical</button>
-    </div>
-    <button class="btn-admin" onclick="openAdminPanel()">⚙️ Admin: Manage Products</button>
   </div>
 
-  <!-- Product Count -->
-  <div class="product-count" id="productCount"></div>
+  <!-- Body: sidebar + grid -->
+  <div style="background:#f4f6f9; padding:0 5% 60px;">
+    <div class="prod-layout">
 
-  <!-- Products Grid -->
-  <div class="products-grid" id="productsGrid"></div>
+      <!-- Sidebar categories -->
+      <aside class="prod-sidebar">
+        <h4>Categories</h4>
+        <button class="cat-item active" onclick="filterByCategory('All',this)">
+          All Products <span class="cat-count" id="cnt-All">0</span>
+        </button>
+        <button class="cat-item" onclick="filterByCategory('Prescription',this)">
+          💊 Prescription <span class="cat-count" id="cnt-Prescription">0</span>
+        </button>
+        <button class="cat-item" onclick="filterByCategory('OTC',this)">
+          🩺 OTC <span class="cat-count" id="cnt-OTC">0</span>
+        </button>
+        <button class="cat-item" onclick="filterByCategory('Ayurvedic',this)">
+          🌿 Ayurvedic <span class="cat-count" id="cnt-Ayurvedic">0</span>
+        </button>
+        <button class="cat-item" onclick="filterByCategory('Vitamins',this)">
+          🌟 Vitamins <span class="cat-count" id="cnt-Vitamins">0</span>
+        </button>
+        <button class="cat-item" onclick="filterByCategory('Baby Care',this)">
+          🍼 Baby Care <span class="cat-count" id="cnt-Baby Care">0</span>
+        </button>
+        <button class="cat-item" onclick="filterByCategory('Cardiac',this)">
+          🫀 Cardiac <span class="cat-count" id="cnt-Cardiac">0</span>
+        </button>
+        <button class="cat-item" onclick="filterByCategory('Surgical',this)">
+          🩹 Surgical <span class="cat-count" id="cnt-Surgical">0</span>
+        </button>
+      </aside>
 
-  <!-- Empty State -->
-  <div class="empty-state" id="emptyState" style="display:none;">
-    <div style="font-size:3rem;">🔍</div>
-    <h3>No products found</h3>
-    <p>Try a different search term or category filter.</p>
+      <!-- Main content -->
+      <div class="prod-main">
+        <div class="prod-results-bar">
+          <div class="product-count" id="productCount"></div>
+        </div>
+        <div class="products-grid" id="productsGrid"></div>
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div style="font-size:3rem;margin-bottom:10px;">🔍</div>
+          <h3>No products found</h3>
+          <p>Try a different search or category.</p>
+        </div>
+      </div>
+
+    </div>
   </div>
 </section>
 
@@ -3360,9 +3533,9 @@
     }
   }
 
-  // ====== RENDER PRODUCTS ======
+  // ====== RENDER PRODUCTS — Tata 1mg Style ======
   function renderProducts(list) {
-    var grid = document.getElementById('productsGrid');
+    var grid  = document.getElementById('productsGrid');
     var empty = document.getElementById('emptyState');
     var count = document.getElementById('productCount');
     if (!grid) return;
@@ -3370,68 +3543,59 @@
       grid.innerHTML = ''; empty.style.display = 'block'; count.textContent = ''; return;
     }
     empty.style.display = 'none';
-    count.textContent = 'Showing ' + list.length + ' product' + (list.length !== 1 ? 's' : '');
+    count.textContent = list.length + ' product' + (list.length !== 1 ? 's' : '') + ' found';
+
     grid.innerHTML = list.map(function(p) {
-      var imgHtml = '';
-      if (p.image && p.image.trim() !== '') {
-        imgHtml = '<div class="product-img" style="padding:0;background:#f0f8f7;">' +
-          '<img src="' + p.image + '" alt="' + p.name + '" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentElement.innerHTML=\'' + (p.icon || '💊') + '\';this.parentElement.style.fontSize=\'40px\';">' +
-          '</div>';
-      } else {
-        imgHtml = '<div class="product-img">' + (p.icon || '💊') + '</div>';
-      }
+      // Image
+      var imgHtml = p.image && p.image.trim()
+        ? '<div class="product-img"><img src="' + p.image + '" alt="' + p.name + '" onerror="this.parentElement.innerHTML=\'<span style=\"font-size:52px;\">' + (p.icon||'💊') + '</span>\'"></div>'
+        : '<div class="product-img"><span style="font-size:52px;">' + (p.icon||'💊') + '</span></div>';
 
-      // Build pricing rows (up to 3 quantities)
-      var pricingHtml = '';
-      var rows = [
-        { label: p.qty1Label, price: p.qty1Price, isFirst: true },
-        { label: p.qty2Label, price: p.qty2Price, isFirst: false },
-        { label: p.qty3Label, price: p.qty3Price, isFirst: false }
-      ];
-      rows.forEach(function(row) {
-        if (!row.label || !row.price) return;
-        var hasDiscount = row.isFirst && p.discountPrice && parseFloat(p.discountPrice) > 0;
-        var discountPct = hasDiscount ? Math.round((1 - parseFloat(p.discountPrice) / parseFloat(row.price)) * 100) : 0;
-        var finalPrice = hasDiscount ? p.discountPrice : row.price;
-        pricingHtml += '<div class="price-row">' +
-          '<span class="price-qty-label">' + row.label + '</span>' +
-          '<span class="price-values">' +
-            (hasDiscount ? '<span class="price-original">&#8377;' + Number(row.price).toFixed(0) + '</span>' : '') +
-            '<span class="price-final">&#8377;' + Number(finalPrice).toFixed(0) + '</span>' +
-            (hasDiscount ? '<span class="discount-tag">' + discountPct + '% off</span>' : '') +
-          '</span>' +
-        '</div>';
-      });
-      // Fallback if no qty pricing set
-      if (!pricingHtml) {
-        pricingHtml = '<div class="price-row"><span class="price-qty-label">Price</span><span class="price-values"><span class="price-final">&#8377;' + Number(p.price).toFixed(2) + '</span></span></div>';
-      }
+      // Discount
+      var hasDisc = p.discountPrice && p.qty1Price && parseFloat(p.discountPrice) > 0 && parseFloat(p.qty1Price) > 0;
+      var discPct = hasDisc ? Math.round((1 - parseFloat(p.discountPrice)/parseFloat(p.qty1Price))*100) : 0;
+      var discBadge = hasDisc ? '<div class="product-discount-badge">' + discPct + '% OFF</div>' : '';
 
-      // WhatsApp order message
-      var waMsg = encodeURIComponent('Hello Sri Sai Balaji Pharma, I would like to order: ' + p.name + ' (' + p.category + '). Please let me know availability and pricing. Thank you.');
+      // Rx corner
+      var rxCorner = p.rx === 'Yes'
+        ? '<div class="product-rx-corner rx-yes-corner">Rx</div>'
+        : '<div class="product-rx-corner rx-no-corner">OTC</div>';
+
+      // Price
+      var base  = p.qty1Price ? parseFloat(p.qty1Price) : parseFloat(p.price);
+      var final = hasDisc ? parseFloat(p.discountPrice) : base;
+      var pack  = p.qty1Label || '';
+
+      var priceHtml = '<div class="product-price-row">'
+        + '<span class="product-price-final">&#8377;' + Number(final).toFixed(0) + '</span>'
+        + (hasDisc ? '<span class="product-price-mrp">&#8377;' + Number(base).toFixed(0) + '</span>' : '')
+        + (hasDisc ? '<span class="product-price-save">' + discPct + '% off</span>' : '')
+        + '</div>'
+        + (pack ? '<div style="font-size:0.68rem;color:#aaa;margin-top:2px;">' + pack + '</div>' : '');
+
+      // WhatsApp
+      var waMsg = encodeURIComponent('Hello Sri Sai Balaji Pharma, I want to order: ' + p.name + '. Please confirm availability and price.');
       var waUrl = 'https://wa.me/919963800555?text=' + waMsg;
 
-      return '<div class="product-card">' +
-        imgHtml +
-        '<div class="product-info">' +
-          '<div class="product-cat">' + p.category + '</div>' +
-          '<div class="product-name">' + p.name + '</div>' +
-          '<div class="product-desc">' + (p.desc || '') + '</div>' +
-          '<div class="product-pricing">' + pricingHtml + '</div>' +
-        '</div>' +
-        '<div class="product-footer">' +
-          '<span class="rx-badge ' + (p.rx === 'Yes' ? 'rx-yes' : 'rx-no') + '">' +
-            (p.rx === 'Yes' ? '📋 Rx Required' : '✅ No Rx') + '</span>' +
-          '<a href="' + waUrl + '" target="_blank" rel="noopener" class="product-wa-btn" aria-label="Order ' + p.name + ' on WhatsApp">' +
-            '<svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.886 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' +
-            'Order' +
-          '</a>' +
-        '</div>' +
-      '</div>';
+      return '<div class="product-card">'
+        + discBadge + rxCorner + imgHtml
+        + '<div class="product-info">'
+        +   '<div class="product-mfr">' + p.category + '</div>'
+        +   '<div class="product-name">' + p.name + '</div>'
+        +   (p.desc ? '<div class="product-desc">' + p.desc + '</div>' : '')
+        +   priceHtml
+        + '</div>'
+        + '<div class="product-footer">'
+        +   '<a href="' + waUrl + '" target="_blank" class="product-wa-btn">'
+        +     '<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.886 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>'
+        +     'Order on WhatsApp'
+        +   '</a>'
+        + '</div>'
+        + '</div>';
     }).join('');
   }
 
-  function getFilteredProducts() {
+    function getFilteredProducts() {
     var q = (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '').toLowerCase();
     return products.filter(function(p) {
       var matchCat = activeCategory === 'All' || p.category === activeCategory;
@@ -3442,8 +3606,33 @@
 
   window.filterProducts = function() { renderProducts(getFilteredProducts()); };
 
-  window.filterByCategory = function(cat) {
+  window.sortProducts = function(val) {
+    var list = getFilteredProducts();
+    if (val === 'name')       list.sort(function(a,b){ return a.name.localeCompare(b.name); });
+    if (val === 'price_low')  list.sort(function(a,b){ return (parseFloat(a.discountPrice||a.qty1Price||a.price)||0) - (parseFloat(b.discountPrice||b.qty1Price||b.price)||0); });
+    if (val === 'price_high') list.sort(function(a,b){ return (parseFloat(b.discountPrice||b.qty1Price||b.price)||0) - (parseFloat(a.discountPrice||a.qty1Price||a.price)||0); });
+    if (val === 'discount')   list.sort(function(a,b){
+      var da = (a.discountPrice && a.qty1Price) ? Math.round((1-parseFloat(a.discountPrice)/parseFloat(a.qty1Price))*100) : 0;
+      var db = (b.discountPrice && b.qty1Price) ? Math.round((1-parseFloat(b.discountPrice)/parseFloat(b.qty1Price))*100) : 0;
+      return db - da;
+    });
+    renderProducts(list);
+  };
+
+  function updateCategoryCounts() {
+    var cats = ['All','Prescription','OTC','Ayurvedic','Vitamins','Baby Care','Cardiac','Surgical'];
+    cats.forEach(function(c) {
+      var el = document.getElementById('cnt-' + c);
+      if (!el) return;
+      el.textContent = c === 'All' ? products.length : products.filter(function(p){ return p.category === c; }).length;
+    });
+  }
+
+  window.filterByCategory = function(cat, el) {
     activeCategory = cat;
+    // update sidebar active state
+    document.querySelectorAll('.cat-item').forEach(function(b){ b.classList.remove('active'); });
+    if (el) el.classList.add('active');
     document.querySelectorAll('.filter-btn').forEach(function(b) {
       b.classList.toggle('active', b.textContent.trim() === cat);
     });
