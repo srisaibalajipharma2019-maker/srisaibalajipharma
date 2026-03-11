@@ -1098,31 +1098,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
               <select id="pRx"><option value="No">No</option><option value="Yes">Yes</option></select>
             </div>
             <div class="field form-full"><label>Description</label><input type="text" id="pDesc" placeholder="Brief product description"/></div>
-            <div class="field form-full">
-              <label>Product Image</label>
-              <!-- Upload Zone -->
-              <div id="pImgZone" onclick="document.getElementById('pImgFileInput').click()"
-                style="border:2px dashed #dde5ed;border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:all 0.2s;background:#fafefe;position:relative;">
-                <div id="pImgZoneContent">
-                  <div style="font-size:2rem;margin-bottom:6px;">📸</div>
-                  <p style="font-size:0.875rem;color:var(--text-muted);margin:0;">Click to upload image from your computer</p>
-                  <p style="font-size:0.75rem;color:#aab;margin-top:4px;">JPG · PNG · WEBP · Max 2MB</p>
-                </div>
-                <img id="pImgPreviewImg" src="" alt="Preview"
-                  style="display:none;max-height:140px;max-width:100%;border-radius:8px;margin-top:8px;"/>
-              </div>
-              <input type="file" id="pImgFileInput" accept="image/*" style="display:none;" onchange="handlePImgUpload(this)"/>
-              <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
-                <div style="flex:1;height:1px;background:#dde5ed;"></div>
-                <span style="font-size:0.72rem;color:#aab;font-weight:600;">OR</span>
-                <div style="flex:1;height:1px;background:#dde5ed;"></div>
-              </div>
-              <input type="text" id="pImage" placeholder="Paste image URL: https://…"
-                style="border:1px solid #dde5ed;border-radius:8px;padding:10px 12px;font-size:0.875rem;font-family:'DM Sans',sans-serif;color:var(--text);width:100%;outline:none;margin-top:8px;"
-                oninput="onPImageUrlChange(this.value)"
-                onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='#dde5ed'"/>
-              <button type="button" id="pImgClearBtn" onclick="clearPImg()" style="display:none;margin-top:6px;background:transparent;border:1px solid rgba(192,57,43,0.3);border-radius:6px;padding:5px 12px;font-size:0.78rem;color:var(--danger);cursor:pointer;font-family:'DM Sans',sans-serif;">✕ Remove Image</button>
-            </div>
+            <div class="field form-full"><label>Image URL (optional)</label><input type="text" id="pImage" placeholder="https://…"/></div>
           </div>
 
           <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
@@ -1257,35 +1233,26 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
           <div class="panel-title">System <em>Settings</em></div>
         </div>
 
-        <!-- BIG PASSWORD CHANGE CARD -->
-        <div style="background:white;border:2px solid var(--teal);border-radius:16px;padding:32px;margin-bottom:28px;box-shadow:0 4px 20px rgba(0,137,123,0.1);">
-          <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
-            <div style="width:52px;height:52px;background:linear-gradient(135deg,var(--teal),var(--teal-light));border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;box-shadow:0 4px 12px rgba(0,137,123,0.3);">🔐</div>
-            <div>
-              <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:700;color:var(--text);margin-bottom:4px;">Change Admin Password</h2>
-              <p style="font-size:0.875rem;color:var(--text-muted);">Current default password is <strong style="color:var(--danger);">admin123</strong> — please change it now for your security!</p>
-            </div>
-          </div>
-          <hr style="border:none;border-top:1px solid var(--border);margin-bottom:22px;"/>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
-            <div class="field">
-              <label>Current Password</label>
-              <input type="password" id="setCurPwd" placeholder="Enter current password" style="font-size:1rem;padding:12px 14px;"/>
-            </div>
-            <div class="field">
-              <label>New Password</label>
-              <input type="password" id="setNewPwd" placeholder="Min 6 characters" style="font-size:1rem;padding:12px 14px;"/>
-            </div>
-            <div class="field">
-              <label>Confirm New Password</label>
-              <input type="password" id="setConfPwd" placeholder="Repeat new password" style="font-size:1rem;padding:12px 14px;"/>
-            </div>
-          </div>
-          <button class="btn-teal" onclick="changePassword()" style="font-size:1rem;padding:13px 32px;">🔒 Update Password</button>
-          <div id="pwdMsg" style="margin-top:14px;font-size:0.9rem;font-weight:500;min-height:22px;"></div>
-        </div>
-
         <div class="settings-grid">
+          <div class="setting-card">
+            <h3>🔐 Change Admin Password</h3>
+            <p>Update the password used to log in to this admin panel</p>
+            <div class="field" style="margin-bottom:12px;">
+              <label>Current Password</label>
+              <input type="password" id="setCurPwd" placeholder="Current password"/>
+            </div>
+            <div class="field" style="margin-bottom:12px;">
+              <label>New Password</label>
+              <input type="password" id="setNewPwd" placeholder="New password (min 6 chars)"/>
+            </div>
+            <div class="field" style="margin-bottom:14px;">
+              <label>Confirm New Password</label>
+              <input type="password" id="setConfPwd" placeholder="Confirm new password"/>
+            </div>
+            <button class="btn-teal" onclick="changePassword()">🔒 Update Password</button>
+            <div class="form-msg" id="pwdMsg" style="margin-top:10px;"></div>
+          </div>
+
           <div class="setting-card">
             <h3>📊 Database Info</h3>
             <p>Your current JSONBin database connection details</p>
@@ -1311,7 +1278,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
 
           <div class="setting-card">
             <h3>📋 Data Management</h3>
-            <p>Export or clear your prescription records</p>
+            <p>Export or clear your data</p>
             <div style="display:flex;flex-direction:column;gap:10px;">
               <button class="btn-teal" onclick="exportRxData()">📥 Export Rx Data (JSON)</button>
               <button class="btn-sm danger" style="padding:10px;font-size:0.875rem;" onclick="clearRxData()">🗑 Clear All Rx Records</button>
@@ -1430,29 +1397,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
         <div class="field"><label>Icon</label><input type="text" id="epIcon"/></div>
         <div class="field"><label>Rx Required?</label><select id="epRx"><option value="No">No</option><option value="Yes">Yes</option></select></div>
         <div class="field form-full"><label>Description</label><input type="text" id="epDesc"/></div>
-        <div class="field form-full">
-          <label>Product Image</label>
-          <div id="epImgZone" onclick="document.getElementById('epImgFileInput').click()"
-            style="border:2px dashed #dde5ed;border-radius:10px;padding:14px;text-align:center;cursor:pointer;transition:all 0.2s;background:#fafefe;margin-bottom:8px;">
-            <div id="epImgZoneContent">
-              <div style="font-size:1.6rem;margin-bottom:4px;">📸</div>
-              <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Click to upload new image</p>
-            </div>
-            <img id="epImgPreviewImg" src="" alt="Preview"
-              style="display:none;max-height:120px;max-width:100%;border-radius:8px;margin-top:6px;"/>
-          </div>
-          <input type="file" id="epImgFileInput" accept="image/*" style="display:none;" onchange="handleEpImgUpload(this)"/>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-            <div style="flex:1;height:1px;background:#dde5ed;"></div>
-            <span style="font-size:0.72rem;color:#aab;font-weight:600;">OR paste URL</span>
-            <div style="flex:1;height:1px;background:#dde5ed;"></div>
-          </div>
-          <input type="text" id="epImage" placeholder="https://…"
-            style="border:1px solid #dde5ed;border-radius:8px;padding:10px 12px;font-size:0.875rem;font-family:'DM Sans',sans-serif;color:var(--text);width:100%;outline:none;"
-            oninput="onEpImageUrlChange(this.value)"
-            onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='#dde5ed'"/>
-          <button type="button" id="epImgClearBtn" onclick="clearEpImg()" style="display:none;margin-top:6px;background:transparent;border:1px solid rgba(192,57,43,0.3);border-radius:6px;padding:5px 12px;font-size:0.78rem;color:var(--danger);cursor:pointer;font-family:'DM Sans',sans-serif;">✕ Remove Image</button>
-        </div>
+        <div class="field form-full"><label>Image URL</label><input type="text" id="epImage"/></div>
         <div class="field"><label>Qty 1 Label</label><input type="text" id="epQty1Label"/></div>
         <div class="field"><label>Qty 1 Price</label><input type="number" id="epQty1Price"/></div>
         <div class="field"><label>Qty 2 Label</label><input type="text" id="epQty2Label"/></div>
@@ -1486,6 +1431,28 @@ var HEADERS  = { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY, 'X
 
 var PRODUCTS_BIN = localStorage.getItem('ssb_products_bin') || null;
 var SERVICES_BIN = localStorage.getItem('ssb_services_bin') || null;
+
+
+var defaultProducts = [
+  { name: 'Paracetamol 500mg',    category: 'OTC',          price: 18,  stock: 200, desc: 'Fever and pain relief tablet',              icon: '💊', rx: 'No',  qty1Label: 'Per Strip (15 tabs)',  qty1Price: 18,  qty2Label: 'Per Strip (30 tabs)', qty2Price: 32,  qty3Label: 'Per Pack (100 tabs)', qty3Price: 95,  discountPrice: '' },
+  { name: 'Amoxicillin 250mg',    category: 'Prescription', price: 85,  stock: 120, desc: 'Antibiotic for bacterial infections',        icon: '💉', rx: 'Yes', qty1Label: 'Per Strip (10 caps)',  qty1Price: 85,  qty2Label: 'Per Strip (20 caps)', qty2Price: 155, qty3Label: '',                   qty3Price: '',  discountPrice: 72  },
+  { name: 'Cardiac Aspirin 75mg', category: 'Cardiac',      price: 45,  stock: 300, desc: 'Low-dose aspirin for heart health',          icon: '🫀', rx: 'No',  qty1Label: 'Per Strip (14 tabs)',  qty1Price: 45,  qty2Label: 'Per Strip (28 tabs)', qty2Price: 82,  qty3Label: 'Per Box (100 tabs)',  qty3Price: 275, discountPrice: '' },
+  { name: 'Vitamin D3 1000 IU',   category: 'Vitamins',     price: 120, stock: 180, desc: 'Bone strength and immunity support',         icon: '🌟', rx: 'No',  qty1Label: 'Per Strip (15 caps)',  qty1Price: 120, qty2Label: 'Per Strip (30 caps)', qty2Price: 225, qty3Label: 'Per Bottle (60 caps)', qty3Price: 420, discountPrice: 99  },
+  { name: 'Ashwagandha Capsules', category: 'Ayurvedic',    price: 220, stock: 90,  desc: 'Stress relief and vitality booster',         icon: '🌿', rx: 'No',  qty1Label: 'Per Bottle (30 caps)', qty1Price: 220, qty2Label: 'Per Bottle (60 caps)', qty2Price: 399, qty3Label: '',                   qty3Price: '',  discountPrice: 185 },
+  { name: 'Baby Gripe Water',     category: 'Baby Care',    price: 65,  stock: 150, desc: 'Colic and gas relief for infants',           icon: '🍼', rx: 'No',  qty1Label: 'Per Bottle (100ml)',   qty1Price: 65,  qty2Label: 'Per Bottle (200ml)',  qty2Price: 115, qty3Label: '',                   qty3Price: '',  discountPrice: '' },
+  { name: 'Surgical Cotton 100g', category: 'Surgical',     price: 35,  stock: 400, desc: 'Sterile absorbent cotton for wounds',        icon: '🩹', rx: 'No',  qty1Label: 'Per Pack (100g)',      qty1Price: 35,  qty2Label: 'Per Pack (500g)',     qty2Price: 155, qty3Label: '',                   qty3Price: '',  discountPrice: '' },
+  { name: 'Metformin 500mg',      category: 'Prescription', price: 55,  stock: 250, desc: 'Type 2 diabetes management tablet',         icon: '💊', rx: 'Yes', qty1Label: 'Per Strip (20 tabs)',  qty1Price: 55,  qty2Label: 'Per Strip (30 tabs)', qty2Price: 78,  qty3Label: 'Per Pack (100 tabs)', qty3Price: 240, discountPrice: 45  },
+  { name: 'Dolo 650',             category: 'OTC',          price: 32,  stock: 100, desc: 'Fever and mild pain relief tablet',          icon: '💊', rx: 'No',  qty1Label: 'Per Strip (15 tabs)',  qty1Price: 32,  qty2Label: 'Per Strip (30 tabs)', qty2Price: 58,  qty3Label: 'Per Pack (100 tabs)', qty3Price: 175, discountPrice: '' },
+];
+
+var defaultServices = [
+  { icon: '💊', name: 'Prescription Medicines', desc: 'All prescription medications fulfilled accurately with pharmacist verification and safety checks for every patient.' },
+  { icon: '🩺', name: 'Health Consultations', desc: 'Free pharmacist consultations on dosage, drug interactions, and general health queries — walk-in welcome.' },
+  { icon: '🧴', name: 'OTC & Wellness Products', desc: 'Wide range of over-the-counter medicines, vitamins, supplements, personal care and wellness products.' },
+  { icon: '🏠', name: 'Home Delivery', desc: 'Safe and prompt delivery of medicines to your doorstep. Available within city limits with same-day options.' },
+  { icon: '🧪', name: 'Diagnostics & Lab Tie-ups', desc: 'Partnered with certified diagnostic labs for blood tests, health checkups, and report collection services.' },
+  { icon: '📋', name: 'Chronic Care Management', desc: 'Refill reminders, medication tracking, and personalized support for patients with long-term conditions.' }
+];
 
 var products = [];
 var services = [];
@@ -1559,15 +1526,32 @@ async function binCreate(data) {
 // ── INIT DATA ──────────────────────────────────────────────
 async function initAdminData() {
   try {
-    if (PRODUCTS_BIN) {
-      products = await binGet(PRODUCTS_BIN);
-      if (!Array.isArray(products)) products = [];
+    // PRODUCTS: create bin if not yet initialised
+    if (!PRODUCTS_BIN) {
+      PRODUCTS_BIN = await binCreate(defaultProducts);
+      localStorage.setItem('ssb_products_bin', PRODUCTS_BIN);
     }
-    if (SERVICES_BIN) {
-      services = await binGet(SERVICES_BIN);
-      if (!Array.isArray(services)) services = [];
+    products = await binGet(PRODUCTS_BIN);
+    if (!Array.isArray(products) || !products.length) {
+      products = defaultProducts;
+      await binUpdate(PRODUCTS_BIN, products);
     }
-  } catch(e) { console.warn('DB load error:', e); }
+
+    // SERVICES: create bin if not yet initialised
+    if (!SERVICES_BIN) {
+      SERVICES_BIN = await binCreate(defaultServices);
+      localStorage.setItem('ssb_services_bin', SERVICES_BIN);
+    }
+    services = await binGet(SERVICES_BIN);
+    if (!Array.isArray(services) || !services.length) {
+      services = defaultServices;
+      await binUpdate(SERVICES_BIN, services);
+    }
+  } catch(e) {
+    console.warn('DB load error, using defaults:', e);
+    products = defaultProducts;
+    services = defaultServices;
+  }
 
   updateSidebarBadges();
   renderProductsAdmin();
@@ -1648,7 +1632,7 @@ async function adminAddProduct() {
   var price = document.getElementById('pPrice').value;
   var msg   = document.getElementById('pMsg');
   if (!name || !cat || !price) { msg.innerHTML = '<span style="color:var(--danger);">Please fill in Name, Category, and Price.</span>'; return; }
-  if (!PRODUCTS_BIN) { msg.innerHTML = '<span style="color:var(--danger);">Database not connected. Open the main site first to initialise bins.</span>'; return; }
+  if (!PRODUCTS_BIN) { console.warn('Products bin not ready'); return; }
   msg.innerHTML = '<span style="color:var(--text-muted);">⏳ Saving…</span>';
   try {
     var p = {
@@ -1656,7 +1640,7 @@ async function adminAddProduct() {
       price: parseFloat(price),
       stock: parseInt(document.getElementById('pStock').value)||0,
       desc:  document.getElementById('pDesc').value.trim(),
-      image: pImgBase64 || document.getElementById('pImage').value.trim(),
+      image: document.getElementById('pImage').value.trim(),
       icon:  document.getElementById('pIcon').value.trim()||'💊',
       rx:    document.getElementById('pRx').value,
       qty1Label: document.getElementById('pQty1Label').value.trim(),
@@ -1669,8 +1653,7 @@ async function adminAddProduct() {
     };
     products.push(p);
     await binUpdate(PRODUCTS_BIN, products);
-    clearPImg();
-    ['pName','pCat','pPrice','pStock','pDesc','pIcon','pRx',
+    ['pName','pCat','pPrice','pStock','pDesc','pImage','pIcon','pRx',
      'pQty1Label','pQty1Price','pQty2Label','pQty2Price','pQty3Label','pQty3Price','pDiscountPrice']
       .forEach(function(id){ var el=document.getElementById(id); if(el){el.value='';} });
     renderProductsAdmin();
@@ -1702,17 +1685,7 @@ function openEditProduct(idx) {
   document.getElementById('epIcon').value      = p.icon||'';
   document.getElementById('epRx').value        = p.rx||'No';
   document.getElementById('epDesc').value      = p.desc||'';
-  epImgBase64 = '';
-  document.getElementById('epImage').value = p.image && !p.image.startsWith('data:') ? p.image : '';
-  var epPrev = document.getElementById('epImgPreviewImg');
-  if (p.image) {
-    epPrev.src = p.image; epPrev.style.display = 'block';
-    document.getElementById('epImgZoneContent').style.display = 'none';
-    document.getElementById('epImgClearBtn').style.display = 'inline-block';
-    if (p.image.startsWith('data:')) { epImgBase64 = p.image; document.getElementById('epImage').value = ''; }
-  } else {
-    clearEpImg();
-  }
+  document.getElementById('epImage').value     = p.image||'';
   document.getElementById('epQty1Label').value = p.qty1Label||'';
   document.getElementById('epQty1Price').value = p.qty1Price||'';
   document.getElementById('epQty2Label').value = p.qty2Label||'';
@@ -1735,7 +1708,7 @@ async function saveEditProduct() {
     icon:     document.getElementById('epIcon').value.trim()||'💊',
     rx:       document.getElementById('epRx').value,
     desc:     document.getElementById('epDesc').value.trim(),
-    image:    epImgBase64 || document.getElementById('epImage').value.trim(),
+    image:    document.getElementById('epImage').value.trim(),
     qty1Label: document.getElementById('epQty1Label').value.trim(),
     qty1Price: document.getElementById('epQty1Price').value ? parseFloat(document.getElementById('epQty1Price').value) : '',
     qty2Label: document.getElementById('epQty2Label').value.trim(),
@@ -1773,7 +1746,7 @@ async function adminAddService() {
   var desc = document.getElementById('sDesc').value.trim();
   var msg  = document.getElementById('sMsg');
   if (!name || !desc) { msg.innerHTML = '<span style="color:var(--danger);">Please fill in Name and Description.</span>'; return; }
-  if (!SERVICES_BIN) { msg.innerHTML = '<span style="color:var(--danger);">Database not connected. Open the main site first.</span>'; return; }
+  if (!SERVICES_BIN) { console.warn('Services bin not ready'); return; }
   msg.innerHTML = '<span style="color:var(--text-muted);">⏳ Saving…</span>';
   try {
     services.push({ icon: document.getElementById('sIcon').value.trim()||'🏥', name: name, desc: desc });
@@ -2009,10 +1982,10 @@ window.rxClosePreview = function() {
 
 // ── VIDEOS ADMIN ────────────────────────────────────────────
 function loadVids() {
-  try { return JSON.parse(localStorage.getItem('ssb_videos')||'[]'); } catch(e){ return []; }
+  try { return JSON.parse(localStorage.getItem('ssb_promo_videos')||'[]'); } catch(e){ return []; }
 }
 
-function saveVids(arr) { localStorage.setItem('ssb_videos', JSON.stringify(arr)); }
+function saveVids(arr) { localStorage.setItem('ssb_promo_videos', JSON.stringify(arr)); }
 
 function renderVideosAdmin() {
   var vids = loadVids();
@@ -2057,96 +2030,6 @@ function deleteVid(id) {
   if (!confirm('Delete this video?')) return;
   saveVids(loadVids().filter(function(v){ return v.id!==id; }));
   renderVideosAdmin();
-}
-
-// ── IMAGE UPLOAD HELPERS ──────────────────────────────────
-// Stored base64 for Add Product
-var pImgBase64 = '';
-// Stored base64 for Edit Product
-var epImgBase64 = '';
-
-function handlePImgUpload(input) {
-  var file = input.files[0];
-  if (!file) return;
-  if (file.size > 2 * 1024 * 1024) { alert('Image too large. Max 2MB allowed.'); input.value=''; return; }
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    pImgBase64 = e.target.result;
-    document.getElementById('pImage').value = '';
-    var img = document.getElementById('pImgPreviewImg');
-    img.src = pImgBase64;
-    img.style.display = 'block';
-    document.getElementById('pImgZoneContent').style.display = 'none';
-    document.getElementById('pImgZone').style.borderColor = 'var(--teal)';
-    document.getElementById('pImgZone').style.background  = 'rgba(0,137,123,0.04)';
-    document.getElementById('pImgClearBtn').style.display = 'inline-block';
-  };
-  reader.readAsDataURL(file);
-}
-
-function onPImageUrlChange(val) {
-  if (val) {
-    pImgBase64 = '';
-    document.getElementById('pImgPreviewImg').src = val;
-    document.getElementById('pImgPreviewImg').style.display = 'block';
-    document.getElementById('pImgZoneContent').style.display = 'none';
-    document.getElementById('pImgClearBtn').style.display = 'inline-block';
-  } else {
-    clearPImg();
-  }
-}
-
-function clearPImg() {
-  pImgBase64 = '';
-  document.getElementById('pImage').value = '';
-  document.getElementById('pImgFileInput').value = '';
-  document.getElementById('pImgPreviewImg').src = '';
-  document.getElementById('pImgPreviewImg').style.display = 'none';
-  document.getElementById('pImgZoneContent').style.display = 'block';
-  document.getElementById('pImgZone').style.borderColor = '#dde5ed';
-  document.getElementById('pImgZone').style.background  = '#fafefe';
-  document.getElementById('pImgClearBtn').style.display = 'none';
-}
-
-function handleEpImgUpload(input) {
-  var file = input.files[0];
-  if (!file) return;
-  if (file.size > 2 * 1024 * 1024) { alert('Image too large. Max 2MB.'); input.value=''; return; }
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    epImgBase64 = e.target.result;
-    document.getElementById('epImage').value = '';
-    var img = document.getElementById('epImgPreviewImg');
-    img.src = epImgBase64;
-    img.style.display = 'block';
-    document.getElementById('epImgZoneContent').style.display = 'none';
-    document.getElementById('epImgZone').style.borderColor = 'var(--teal)';
-    document.getElementById('epImgClearBtn').style.display = 'inline-block';
-  };
-  reader.readAsDataURL(file);
-}
-
-function onEpImageUrlChange(val) {
-  if (val) {
-    epImgBase64 = '';
-    document.getElementById('epImgPreviewImg').src = val;
-    document.getElementById('epImgPreviewImg').style.display = 'block';
-    document.getElementById('epImgZoneContent').style.display = 'none';
-    document.getElementById('epImgClearBtn').style.display = 'inline-block';
-  } else {
-    clearEpImg();
-  }
-}
-
-function clearEpImg() {
-  epImgBase64 = '';
-  document.getElementById('epImage').value = '';
-  document.getElementById('epImgFileInput').value = '';
-  document.getElementById('epImgPreviewImg').src = '';
-  document.getElementById('epImgPreviewImg').style.display = 'none';
-  document.getElementById('epImgZoneContent').style.display = 'block';
-  document.getElementById('epImgZone').style.borderColor = '#dde5ed';
-  document.getElementById('epImgClearBtn').style.display = 'none';
 }
 
 // ── SETTINGS ────────────────────────────────────────────────
