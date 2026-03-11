@@ -936,13 +936,108 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
 /* ── RESPONSIVE ──────────────────────────────────────── */
 @media(max-width:768px) {
   .admin-sidebar { display: none; }
-  .admin-main { margin-left: 0; padding: 20px; }
+  .admin-main { margin-left: 0; padding: 20px 16px 88px; }  /* extra bottom padding for mobile nav */
   .form-grid, .form-grid.three { grid-template-columns: 1fr; }
   .settings-grid { grid-template-columns: 1fr; }
-  .rxmed-row { grid-template-columns: 1fr 1fr; }
+  .rxmed-row { flex-wrap: wrap; }
+  .mobile-admin-nav { display: flex !important; }
+
+  /* Topbar */
+  .admin-nav { padding: 0 4%; flex-wrap: wrap; height: auto; min-height: 56px; gap: 8px; }
+  .admin-nav-title { font-size: 0.9rem; }
+  .admin-nav-right { gap: 6px; flex-wrap: wrap; }
+  .logout-btn { padding: 5px 10px; font-size: 0.72rem; }
+
+  /* Stats */
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 12px; }
+  .stat-card { padding: 18px 14px; }
+  .stat-card-value { font-size: 1.8rem; }
+
+  /* Section header */
+  .panel-header { flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 20px; }
+  .panel-title { font-size: 1.5rem; }
+  .panel-header .btn-teal { width: 100%; justify-content: center; }
+
+  /* Product/service list items */
+  .service-admin-item { flex-wrap: wrap; gap: 8px; }
+  .video-admin-item { flex-wrap: wrap; gap: 8px; }
+  .btn-sm { padding: 6px 10px; font-size: 0.72rem; }
+
+  /* Tabs */
+  .tabs { flex-wrap: wrap; gap: 6px; }
+
+  /* Modal */
+  .modal-box, .preview-modal { max-width: 100%; border-radius: 14px 14px 0 0; max-height: 95vh; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-header { padding: 16px 20px; }
+  .modal-body { padding: 16px 20px; }
+
+  /* Rx admin medicine rows */
+  .rxmed-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .rxmed-name { grid-column: 1 / -1; }
+  .rxmed-del { justify-self: end; }
 }
+
+@media(max-width:480px) {
+  #adminTopbar { height: auto; min-height: 56px; padding: 10px 4%; flex-wrap: wrap; }
+  .admin-nav { padding: 8px 4%; }
+  .admin-main { padding: 16px 12px; }
+
+  .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat-card-value { font-size: 1.5rem; }
+  .stat-card { padding: 14px 12px; }
+
+  .login-box { padding: 32px 24px; margin: 16px; }
+
+  .form-grid.three { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+
+  .settings-grid { grid-template-columns: 1fr; }
+  .setting-card { padding: 18px; }
+
+  /* Make topbar buttons smaller */
+  .logout-btn { font-size: 0.68rem; padding: 4px 8px; }
+
+  /* Modal full-screen on small phones */
+  .modal-body { padding: 14px 16px; }
+  .preview-modal { max-height: 98vh; }
+
+  /* List items stacked */
+  .service-admin-item { flex-direction: column; align-items: flex-start; }
+  .video-admin-item { flex-direction: column; align-items: flex-start; }
+  .list-item-actions { width: 100%; display: flex; justify-content: flex-end; }
+}
+/* ── MOBILE BOTTOM NAV ─────────────────────────────── */
+.mobile-admin-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 200;
+  background: rgba(10,22,40,0.98);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(200,169,110,0.2);
+  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  justify-content: space-around;
+  align-items: center;
+}
+.mob-nav-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  background: transparent; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.45); font-family: 'DM Sans', sans-serif;
+  padding: 6px 10px; border-radius: 10px; transition: color 0.2s, background 0.2s;
+  min-width: 52px;
+}
+.mob-nav-btn .micon { font-size: 1.2rem; line-height: 1; }
+.mob-nav-btn .mlabel { font-size: 0.58rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.mob-nav-btn.active { color: var(--teal-light); background: rgba(0,137,123,0.12); }
+.mob-nav-btn .mob-badge {
+  position: absolute; top: 2px; right: 2px;
+  background: #ff5c5c; color: white; font-size: 0.55rem;
+  padding: 1px 4px; border-radius: 8px; font-weight: 700; min-width: 14px; text-align: center;
+}
+.mob-nav-btn { position: relative; }
+
 </style>
-</head>
 <body>
 
 <!-- ════════════════════════════════════════════════════
@@ -2088,6 +2183,55 @@ document.addEventListener('keydown', function(e) {
 document.getElementById('editServiceOverlay').addEventListener('click', function(e){
   if(e.target===this) closeEditSvc();
 });
+</script>
+
+<!-- MOBILE BOTTOM NAV (visible only on mobile) -->
+<nav class="mobile-admin-nav" id="mobileAdminNav">
+  <button class="mob-nav-btn active" id="mobn-dashboard" onclick="showPanel('dashboard',null);mobileNavActive('dashboard')">
+    <span class="micon">📊</span>
+    <span class="mlabel">Dashboard</span>
+  </button>
+  <button class="mob-nav-btn" id="mobn-products" onclick="showPanel('products',null);mobileNavActive('products')">
+    <span class="micon">💊</span>
+    <span class="mlabel">Products</span>
+  </button>
+  <button class="mob-nav-btn" id="mobn-rxInbox" onclick="showPanel('rxInbox',null);mobileNavActive('rxInbox')">
+    <span class="micon">📋</span>
+    <span class="mlabel">Rx Inbox</span>
+    <span class="mob-badge" id="mobBadgeRx"></span>
+  </button>
+  <button class="mob-nav-btn" id="mobn-services" onclick="showPanel('services',null);mobileNavActive('services')">
+    <span class="micon">🩺</span>
+    <span class="mlabel">Services</span>
+  </button>
+  <button class="mob-nav-btn" id="mobn-settings" onclick="showPanel('settings',null);mobileNavActive('settings')">
+    <span class="micon">⚙️</span>
+    <span class="mlabel">Settings</span>
+  </button>
+</nav>
+
+<script>
+function mobileNavActive(panelId) {
+  document.querySelectorAll('.mob-nav-btn').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.getElementById('mobn-' + panelId);
+  if (btn) btn.classList.add('active');
+}
+// Sync mobile badge with Rx count
+var _origUpdateBadges = window.updateSidebarBadges;
+var _origShowPanel = window.showPanel;
+window.showPanel = function(id, el) {
+  if (_origShowPanel) _origShowPanel(id, el);
+  mobileNavActive(id);
+};
+// Update Rx badge on mobile nav
+setInterval(function(){
+  var badge = document.getElementById('sbRxNew');
+  var mobBadge = document.getElementById('mobBadgeRx');
+  if (badge && mobBadge) {
+    var n = badge.textContent;
+    mobBadge.textContent = (n && n !== '0') ? n : '';
+  }
+}, 1000);
 </script>
 
 </body>
