@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WhatsApp Business Toolkit</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --green: #25D366;
+    --green-dark: #128C7E;
+    --green-light: #DCF8C6;
+    --bg: #f0f2f5;
+    --white: #ffffff;
+    --text: #111b21;
+    --muted: #667781;
+    --border: #e9edef;
+    --code-bg: #1e2a35;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--green-dark), var(--green));
+    color: white;
+    padding: 48px 24px 36px;
+    text-align: center;
+  }
+  .wa-icon { font-size: 48px; margin-bottom: 12px; }
+  header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 6px; }
+  header p { opacity: 0.9; font-size: 1rem; }
+
+  /* NAV TABS */
+  .tabs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 20px 16px;
+    background: white;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .tab-btn {
+    padding: 8px 18px;
+    border-radius: 20px;
+    border: 2px solid var(--border);
+    background: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--muted);
+  }
+  .tab-btn.active, .tab-btn:hover {
+    background: var(--green);
+    border-color: var(--green);
+    color: white;
+  }
+
+  /* CONTENT */
+  .section { display: none; padding: 32px 16px; max-width: 860px; margin: 0 auto; }
+  .section.active { display: block; }
+
+  .card {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+    border: 1px solid var(--border);
+  }
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  .card-title .emoji { font-size: 1.3rem; }
+  .badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    margin-left: auto;
+  }
+
+  /* MESSAGE BUBBLE */
+  .bubble-wrap { background: #e5ddd5; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+  .bubble {
+    background: white;
+    border-radius: 0 12px 12px 12px;
+    padding: 14px 16px;
+    font-size: 0.92rem;
+    white-space: pre-wrap;
+    line-height: 1.7;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    position: relative;
+    max-width: 90%;
+  }
+  .bubble::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -8px;
+    border: 8px solid transparent;
+    border-right-color: white;
+    border-top-color: white;
+  }
+  .bubble-time {
+    text-align: right;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* COPY BUTTON */
+  .copy-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { background: var(--green-dark); }
+  .copy-btn.copied { background: #34b7f1; }
+
+  .shortcut-tag {
+    display: inline-block;
+    background: var(--code-bg);
+    color: #7dd3fc;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.8rem;
+    padding: 2px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+
+  /* STEP GUIDE */
+  .steps { counter-reset: step; }
+  .step {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 18px;
+    align-items: flex-start;
+  }
+  .step-num {
+    min-width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--green);
+    color: white;
+    font-weight: 700;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+  .step-text { font-size: 0.95rem; color: var(--text); }
+  .step-text strong { color: var(--green-dark); }
+
+  /* CODE BLOCK */
+  .code-block {
+    background: var(--code-bg);
+    color: #e2e8f0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    border-radius: 12px;
+    padding: 20px;
+    overflow-x: auto;
+    line-height: 1.8;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .code-block .comment { color: #94a3b8; }
+  .code-block .tag { color: #7dd3fc; }
+  .code-block .attr { color: #fca5a5; }
+  .code-block .val { color: #86efac; }
+  .code-block .str { color: #fde68a; }
+
+  /* LIVE PREVIEW */
+  .preview-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+  .preview-box {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    text-align: center;
+    background: #fafafa;
+    margin-bottom: 16px;
+  }
+
+  /* WHATSAPP BUTTON STYLES (for preview & export) */
+  .wa-float-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #25D366;
+    color: white;
+    text-decoration: none;
+    padding: 14px 24px;
+    border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+    box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+    transition: all 0.2s;
+  }
+  .wa-float-btn:hover { background: #128C7E; transform: translateY(-2px); }
+  .wa-svg { width: 22px; height: 22px; fill: white; }
+
+  .tip-box {
+    background: #fffbeb;
+    border-left: 4px solid #f59e0b;
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    font-size: 0.88rem;
+    color: #92400e;
+    margin-top: 16px;
+  }
+
+  @media(max-width:600px) {
+    header h1 { font-size: 1.5rem; }
+    .card { padding: 18px; }
+    .bubble { font-size: 0.85rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wa-icon">💬</div>
+  <h1>Sri Sai Balaji Pharma</h1>
+  <p>WhatsApp Business Toolkit — ready to use! 💊</p>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="showTab('catalogue')">📦 Catalogue</button>
+  <button class="tab-btn" onclick="showTab('complaint')">🛠️ Complaints</button>
+  <button class="tab-btn" onclick="showTab('button')">🔘 Website Button</button>
+</div>
+
+<!-- ===================== CATALOGUE TAB ===================== -->
+<div id="catalogue" class="section active">
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">📦</span> Product Catalogue Message <span class="badge">Quick Reply: /catalogue</span></div>
+    <div class="bubble-wrap">
+      <div class="bubble" id="cat-msg">Hi! 👋 Thanks for your interest in our products!
+
+Here's a quick look at what we offer:
+
+🛍️ *Our Categories:*
+• Category 1 – [e.g. Men's Clothing]
+• Category 2 – [e.g. Women's Clothing]
+• Category 3 – [e.g. Accessories]
+• Category 4 – [e.g. Sale Items]
+
+📖 *View our full catalogue here:*
+👉 your catalogue link
+
+💬 Tell us which category interests you and we'll send you our best picks + prices right away!
+
+🚚 Free shipping on orders above ₹[Amount]
+⚡ Express delivery available</div>
+      <div class="bubble-time">10:32 AM ✓✓</div>
+    </div>
+    <button class="copy-btn" onclick="copyText('cat-msg', this)">📋 Copy Message</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">💰</span> Price Enquiry Reply <span class="badge">Quick Reply: /price</span></div>
+    <div class="bubble-wrap">
+      <div class="bubble" id="price-msg">Hi! 😊 Great choice reaching out to us!
+
+Here's how our pricing works:
+
+✅ *Standard Products:* Starting from ₹[Price]
+✅ *Premium Range:* Starting from ₹[Price]
+✅ *Bulk Orders (10+ items):* Special discounts available!
+
+📌 For exact pricing, just tell us:
+• Which product you're interested in
+• Quantity needed
+
+We'll send you a personalised quote within the hour! ⚡
+
+🎁 *Current Offer:* [e.g. Flat 10% off on first order — use code WELCOME10]</div>
+      <div class="bubble-time">10:35 AM ✓✓</div>
+    </div>
+    <button class="copy-btn" onclick="copyText('price-msg', this)">📋 Copy Message</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">🔥</span> New Arrivals / Offers Broadcast</div>
+    <div class="bubble-wrap">
+      <div class="bubble" id="offers-msg">🎉 *New Arrivals Alert!* — Sri Sai Balaji Pharma
+
+We just launched something exciting! 🚀
+
+✨ *What's New:*
+• [Product 1] – ₹[Price]
+• [Product 2] – ₹[Price]
+• [Product 3] – ₹[Price]
+
+🛒 *Shop Now:* your website link
+
+⏳ Limited stock available — order before it sells out!
+
+💬 Reply *"I'm interested"* and we'll help you place your order right away!
+
+_To stop receiving updates, reply STOP_</div>
+      <div class="bubble-time">11:00 AM ✓✓</div>
+    </div>
+    <button class="copy-btn" onclick="copyText('offers-msg', this)">📋 Copy Message</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">✅</span> How to add to WhatsApp Business</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-text">Open <strong>WhatsApp Business</strong> → tap the 3 dots (⋮) → <strong>Settings</strong></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text">Go to <strong>Business Tools → Quick Replies</strong></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text">Tap <strong>+</strong> → paste the message → set shortcut (e.g. <code>/catalogue</code>)</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-text">Now type <strong>/catalogue</strong> in any chat to instantly send it!</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== COMPLAINT TAB ===================== -->
+<div id="complaint" class="section">
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">🛠️</span> Initial Complaint Acknowledgement <span class="badge">Quick Reply: /complaint</span></div>
+    <div class="bubble-wrap">
+      <div class="bubble" id="comp-ack">Hi [Customer Name], 🙏
+
+We sincerely apologise for the inconvenience caused. We completely understand your frustration and we're here to make this right.
+
+To help you as quickly as possible, could you please share:
+📌 Your Order ID
+📸 A photo of the issue (if applicable)
+📍 Your delivery address
+
+We'll investigate this immediately and get back to you within *2–4 hours* with a resolution. Your satisfaction is our top priority! 💚</div>
+      <div class="bubble-time">2:14 PM ✓✓</div>
+    </div>
+    <button class="copy-btn" onclick="copyText('comp-ack', this)">📋 Copy Message</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">📦</span> Wrong / Damaged Item Received</div>
+    <div class="bubble-wrap">
+      <div class="bubble" id="comp-damaged">Hi [Customer Name],
+
+We're truly sorry to hear that you received a *[wrong/damaged]* item. This is not the experience we want for our customers. 😔
+
+Here's what we'll do right away:
+
+✅ *Option 1:* Send you the correct item immediately (no extra charge)
+✅ *Option 2:* Full refund to your original payment method
+✅ *Option 3:* Store credit with a 10% bonus
+
+Please share a photo of the item received and your preferred resolution. We'll process it within *24 hours*. 🚀
+
+Once again, we sincerely apologise and thank you for your patience! 🙏</div>
+      <div class="bubble-time">2:20 PM ✓✓</div>
+    </div>
+    <button class="copy-btn" onclick="copyText('comp-damaged', this)">📋 Copy Message</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">🚚</span> Delayed Delivery Complaint</div>
+    <div class="bubble-wrap">
+      <div class="bubble" id="comp-delay">Hi [Customer Name],
+
+We sincerely apologise for the delay in your delivery. We understand how frustrating this can be. 😔
+
+📦 *Your Order ID:* [Order ID]
+📍 *Current Status:* [In transit / Out for delivery / Held at hub]
+📅 *Updated Delivery Date:* [Date]
+
+The delay was caused by [reason — e.g. high demand / weather conditions / logistics issue].
+
+As a token of our apology, we'd like to offer you:
+🎁 [e.g. ₹100 store credit / 10% off your next order]
+
+Your order is our priority and we're tracking it closely. Thank you so much for your patience! 🙏</div>
+      <div class="bubble-time">3:05 PM ✓✓</div>
+    </div>
+    <button class="copy-btn" onclick="copyText('comp-delay', this)">📋 Copy Message</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">💰</span> Refund Request</div>
+    <div class="bubble-wrap">
+      <div class="bubble" id="comp-refund">Hi [Customer Name],
+
+Thank you for reaching out. We've received your refund request for Order *#[Order ID]*. 🙏
+
+Here's what happens next:
+
+✅ We'll review your request within *24 hours*
+✅ Once approved, refund will be processed in *5–7 business days*
+✅ You'll receive a confirmation message once done
+
+*Refund Method:* Same as original payment (UPI / Card / Net Banking)
+
+If you have any questions in the meantime, we're right here to help! 💚
+
+Thank you for your patience and for giving us the opportunity to make this right.</div>
+      <div class="bubble-time">3:18 PM ✓✓</div>
+    </div>
+    <button class="copy-btn" onclick="copyText('comp-refund', this)">📋 Copy Message</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">🌟</span> Issue Resolved — Follow Up</div>
+    <div class="bubble-wrap">
+      <div class="bubble" id="comp-resolved">Hi [Customer Name]! 😊
+
+Just checking in — we hope your issue has been fully resolved and you're happy with the outcome!
+
+If there's anything else we can help you with, please don't hesitate to message us. We're always here! 💬
+
+⭐ We'd love to know how we did — your feedback helps us serve you better:
+👉 your Google review link
+
+Thank you so much for your patience and for being a valued customer! 🙏
+— Team Sri Sai Balaji Pharma</div>
+      <div class="bubble-time">5:00 PM ✓✓</div>
+    </div>
+    <button class="copy-btn" onclick="copyText('comp-resolved', this)">📋 Copy Message</button>
+  </div>
+</div>
+
+<!-- ===================== BUTTON TAB ===================== -->
+<div id="button" class="section">
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">👁️</span> Live Preview</div>
+    <div class="preview-label">This is what your button will look like:</div>
+    <div class="preview-box">
+      <a href="#" class="wa-float-btn" onclick="return false;">
+        <svg class="wa-svg" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Chat with us on WhatsApp
+      </a>
+    </div>
+    <div class="tip-box">✅ Your WhatsApp number <strong>+91 9963800555</strong> is already filled in the code below. Just copy and paste it into your website!</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">💻</span> Floating Button (Bottom Right of Page)</div>
+    <p style="font-size:0.9rem;color:var(--muted);margin-bottom:14px;">Paste this code just before the <code>&lt;/body&gt;</code> tag of your website.</p>
+    <div class="code-block" id="floating-code"><span class="comment">&lt;!-- WhatsApp Floating Button --&gt;</span>
+<span class="tag">&lt;style&gt;</span>
+  <span class="attr">.wa-float</span> {
+    <span class="attr">position</span>: <span class="val">fixed</span>;
+    <span class="attr">bottom</span>: <span class="val">24px</span>;
+    <span class="attr">right</span>: <span class="val">24px</span>;
+    <span class="attr">z-index</span>: <span class="val">9999</span>;
+  }
+  <span class="attr">.wa-float a</span> {
+    <span class="attr">display</span>: <span class="val">flex</span>;
+    <span class="attr">align-items</span>: <span class="val">center</span>;
+    <span class="attr">gap</span>: <span class="val">10px</span>;
+    <span class="attr">background</span>: <span class="val">#25D366</span>;
+    <span class="attr">color</span>: <span class="val">white</span>;
+    <span class="attr">text-decoration</span>: <span class="val">none</span>;
+    <span class="attr">padding</span>: <span class="val">14px 22px</span>;
+    <span class="attr">border-radius</span>: <span class="val">50px</span>;
+    <span class="attr">font-family</span>: <span class="val">sans-serif</span>;
+    <span class="attr">font-weight</span>: <span class="val">bold</span>;
+    <span class="attr">font-size</span>: <span class="val">15px</span>;
+    <span class="attr">box-shadow</span>: <span class="val">0 4px 20px rgba(37,211,102,0.5)</span>;
+    <span class="attr">transition</span>: <span class="val">all 0.2s</span>;
+  }
+  <span class="attr">.wa-float a:hover</span> {
+    <span class="attr">background</span>: <span class="val">#128C7E</span>;
+    <span class="attr">transform</span>: <span class="val">translateY(-2px)</span>;
+  }
+  <span class="attr">.wa-float svg</span> { <span class="attr">width</span>: <span class="val">22px</span>; <span class="attr">height</span>: <span class="val">22px</span>; <span class="attr">fill</span>: <span class="val">white</span>; }
+<span class="tag">&lt;/style&gt;</span>
+
+<span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="str">"wa-float"</span><span class="tag">&gt;</span>
+  <span class="tag">&lt;a</span> <span class="attr">href</span>=<span class="str">"https://wa.me/919963800555?text=Hi!%20I%20have%20a%20query."</span>
+     <span class="attr">target</span>=<span class="str">"_blank"</span>
+     <span class="attr">rel</span>=<span class="str">"noopener"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;svg</span> <span class="attr">viewBox</span>=<span class="str">"0 0 24 24"</span><span class="tag">&gt;</span>
+      <span class="tag">&lt;path</span> <span class="attr">d</span>=<span class="str">"M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"</span><span class="tag">/&gt;</span>
+    <span class="tag">&lt;/svg&gt;</span>
+    Chat with us on WhatsApp
+  <span class="tag">&lt;/a&gt;</span>
+<span class="tag">&lt;/div&gt;</span></div>
+    <button class="copy-btn" onclick="copyCode('floating-code', this)">📋 Copy Button Code</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">🔗</span> Simple Text Link (Easiest Option)</div>
+    <p style="font-size:0.9rem;color:var(--muted);margin-bottom:14px;">Just paste this anywhere in your website HTML:</p>
+    <div class="code-block" id="simple-link"><span class="tag">&lt;a</span> <span class="attr">href</span>=<span class="str">"https://wa.me/919963800555?text=Hi!%20I%20have%20a%20query."</span>
+   <span class="attr">target</span>=<span class="str">"_blank"</span><span class="tag">&gt;</span>
+  💬 Chat with us on WhatsApp
+<span class="tag">&lt;/a&gt;</span></div>
+    <button class="copy-btn" onclick="copyCode('simple-link', this)">📋 Copy Link Code</button>
+    <div class="tip-box">💡 <strong>Pre-filled message tip:</strong> The <code>?text=...</code> part auto-fills a message when the customer opens WhatsApp — so they don't have to type anything!</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title"><span class="emoji">📋</span> How to Add to Your Website</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-text">Copy the button code above</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text">✅ Your number <strong>+91 9963800555</strong> is already filled in — no changes needed!</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text">Paste just before <strong>&lt;/body&gt;</strong> in your website's HTML file</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-text">If using <strong>WordPress</strong> → use a plugin like "WP WhatsApp" or paste in footer via <em>Appearance → Theme Editor</em></div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-text">If using <strong>Shopify / Wix / Squarespace</strong> → paste in the Custom HTML / Embed section</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showTab(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+  }
+
+  function copyText(id, btn) {
+    const text = document.getElementById(id).innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✅ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '📋 Copy Message'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  function copyCode(id, btn) {
+    const el = document.getElementById(id);
+    const text = el.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✅ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '📋 Copy Button Code'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+</script>
+</body>
+</html>
