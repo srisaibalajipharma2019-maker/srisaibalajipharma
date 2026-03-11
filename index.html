@@ -1019,18 +1019,163 @@
   }
 
   /* ====== RESPONSIVE ====== */
-  @media (max-width: 768px) {
-    .nav-links { display: none; }
-    .hamburger { display: flex; }
-    .contact-wrap { grid-template-columns: 1fr; gap: 40px; }
-    .footer-top { grid-template-columns: 1fr 1fr; gap: 28px; }
-    .form-row { grid-template-columns: 1fr; }
-    .hero-stats { gap: 24px; }
+
+  /* Tablets and below */
+  @media (max-width: 900px) {
+    .hero-inner { grid-template-columns: 1fr; gap: 32px; }
+    .hero-visual { display: none; }
+    .rx-inner { grid-template-columns: 1fr; gap: 40px; }
+    .section { padding: 72px 5%; }
+    .why-section { padding: 72px 5%; }
+    .testimonials-section { padding: 72px 5%; }
+    .contact-section { padding: 72px 5%; }
+    .rx-section { padding: 60px 5%; }
   }
 
-  @media (max-width: 500px) {
-    .footer-top { grid-template-columns: 1fr; }
+  /* Mobile */
+  @media (max-width: 768px) {
+    /* Nav */
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+
+    /* Hero */
+    h1 { font-size: clamp(2rem, 8vw, 3rem); }
+    .hero { padding: 100px 5% 60px; min-height: auto; }
+    .hero-stats { gap: 20px; flex-wrap: wrap; padding-top: 28px; margin-top: 40px; }
+    .stat-num { font-size: 1.6rem; }
+    .hero-actions { flex-direction: column; gap: 12px; }
+    .hero-actions .btn-primary, .hero-actions .btn-outline { width: 100%; justify-content: center; }
+
+    /* Sections */
+    .section { padding: 56px 5%; }
+    .section-title { font-size: clamp(1.7rem, 5vw, 2.5rem); }
+    .section-sub { margin-bottom: 40px; }
+
+    /* Services */
+    .services-grid { grid-template-columns: 1fr; gap: 16px; }
+    .service-card { padding: 28px 22px; }
+
+    /* Why */
+    .why-section { padding: 56px 5%; }
+    .why-grid { grid-template-columns: 1fr; gap: 16px; }
+    .why-card { padding: 22px 18px; }
+
+    /* Products */
+    .product-controls { flex-direction: column; align-items: stretch; gap: 10px; }
+    .search-box { min-width: unset; }
+    .filter-tabs { gap: 6px; flex-wrap: wrap; }
+    .filter-btn { padding: 6px 12px; font-size: 0.75rem; }
+    .products-grid { grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; }
+    .product-img { height: 90px; font-size: 36px; }
+    .product-info { padding: 12px; }
+    .product-name { font-size: 0.82rem; }
+    .price-final { font-size: 0.82rem; }
+
+    /* Testimonials */
+    .testimonials-section { padding: 56px 5%; }
+    .testimonials-grid { grid-template-columns: 1fr; gap: 16px; }
+
+    /* Rx section */
+    .rx-inner { grid-template-columns: 1fr; gap: 32px; }
+    .rx-section { padding: 56px 5%; }
+
+    /* Contact */
+    .contact-wrap { grid-template-columns: 1fr; gap: 40px; }
+    .form-row { grid-template-columns: 1fr; }
+    .contact-section { padding: 56px 5%; }
+
+    /* Admin modals */
+    .admin-form-grid { grid-template-columns: 1fr; }
+    .modal-box { max-height: 95vh; border-radius: 14px 14px 0 0; }
+    .modal-overlay { align-items: flex-end; padding: 0; }
+    .bm-admin-grid { grid-template-columns: 1fr; }
+    .bm-color-row { flex-direction: column; gap: 8px; }
+    .admin-tabs { flex-wrap: wrap; gap: 6px; }
+    .admin-tab { font-size: 0.78rem; padding: 6px 10px; }
+
+    /* Rx admin */
+    .rx-toolbar { flex-direction: column; gap: 10px; }
+    .rx-filters { flex-wrap: wrap; }
+    .rx-stats-bar { gap: 8px; }
+    .rx-stat-pill { min-width: 80px; padding: 10px 12px; }
+    .rx-stat-num { font-size: 1.2rem; }
+    .rx-card-grid { grid-template-columns: 1fr; }
+    .rxc-foot { gap: 5px; flex-wrap: wrap; }
+
+    /* Reply modal */
+    .rxmed-row { flex-wrap: wrap; }
+    .rxmed-name { flex: 1 1 100%; }
+    .rxmed-avail { flex: 1 1 calc(50% - 4px); }
+    .rxmed-price { flex: 1 1 calc(50% - 4px); }
+
+    /* Footer */
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 28px; }
+    .footer-top { padding-bottom: 32px; }
+
+    /* Video admin */
+    #videoAdminModal > div { width: 95%; max-height: 95vh; }
+
+    /* Banners admin modal */
+    .bm-list-item { flex-wrap: wrap; gap: 8px; }
+    .bm-list-actions { width: 100%; justify-content: flex-end; }
+    .sb-left { flex-direction: column; align-items: flex-start; gap: 6px; }
+  }
+
+  /* Small phones */
+  @media (max-width: 480px) {
+    nav { padding: 0 4%; height: 64px; }
+    .nav-logo { width: 36px; height: 36px; font-size: 18px; }
+    .nav-title { font-size: 1rem; }
+    .nav-title span { font-size: 0.6rem; }
+
+    h1 { font-size: clamp(1.8rem, 7vw, 2.5rem); }
+    .hero { padding: 88px 4% 48px; }
+    .hero-badge { font-size: 0.68rem; padding: 6px 14px; }
+    .hero-desc { font-size: 0.95rem; }
+
+    .section { padding: 44px 4%; }
+    .section-title { font-size: clamp(1.5rem, 6vw, 2rem); }
+
+    .products-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .product-img { height: 80px; font-size: 30px; }
+    .product-info { padding: 10px; }
+    .product-name { font-size: 0.78rem; }
+    .product-desc { font-size: 0.7rem; }
+    .product-footer { padding: 8px 10px; flex-wrap: wrap; gap: 6px; }
+    .product-wa-btn { font-size: 0.7rem; }
+    .rx-badge { font-size: 0.62rem; }
+
+    .footer-top { grid-template-columns: 1fr; gap: 20px; }
     .footer-bottom { flex-direction: column; gap: 10px; text-align: center; }
+    footer { padding: 48px 4% 28px; }
+
+    .why-card { flex-direction: column; gap: 8px; }
+    .why-num { width: auto; font-size: 2rem; }
+
+    .hero-stats { grid-template-columns: 1fr 1fr; display: grid; gap: 16px; }
+
+    .btn-primary, .btn-outline { padding: 13px 24px; font-size: 0.875rem; }
+
+    /* Contact */
+    .contact-section { padding: 44px 4%; }
+    .contact-icon { width: 38px; height: 38px; font-size: 16px; }
+
+    /* Rx upload */
+    .rx-section { padding: 44px 4%; }
+    #rxFormBox { padding: 20px; }
+    .rx-upload-box { padding: 28px 20px; }
+
+    /* Modals full screen on tiny phones */
+    .modal-box { max-width: 100%; border-radius: 12px 12px 0 0; }
+    .modal-header { padding: 18px 20px; }
+    #passwordGate, #adminContent { padding: 16px 20px; }
+
+    /* Rx admin dashboard */
+    .rxrm-inner { border-radius: 14px 14px 0 0; max-height: 96vh; }
+    .rxrm-body { padding: 16px; }
+    .rxrm-foot { padding: 12px 16px; }
+    .rxrm-foot { flex-direction: column; }
+    .rxrm-send, .rxrm-cancel { width: 100%; justify-content: center; }
   }
 
   /* ====== DYNAMIC BANNER SYSTEM ====== */
@@ -2118,6 +2263,7 @@
 <div class="mobile-menu" id="mobileMenu">
   <a href="#services" onclick="closeMobileMenu()">Services</a>
   <a href="#products" onclick="closeMobileMenu()">Products</a>
+  <a href="products-catalogue.html">📋 Full Catalogue</a>
   <a href="#about" onclick="closeMobileMenu()">About Us</a>
   <a href="#testimonials" onclick="closeMobileMenu()">⭐ Reviews</a>
   <a href="#prescription" onclick="closeMobileMenu()">📋 Rx Upload</a>
