@@ -286,8 +286,9 @@ var products = [];
 
 function loadProducts() {
   try {
-    var saved = localStorage.getItem('ssb_products');
-    products = saved ? JSON.parse(saved) : defaultProducts;
+    var catalog  = localStorage.getItem('ssb_catalog');
+    var fallback = localStorage.getItem('ssb_products');
+    products = catalog ? JSON.parse(catalog) : (fallback ? JSON.parse(fallback) : defaultProducts);
     if (!Array.isArray(products) || !products.length) products = defaultProducts;
   } catch(e) {
     products = defaultProducts;
@@ -333,21 +334,35 @@ function renderProducts(list) {
       { label:p.qty3Label, price:p.qty3Price, isFirst:false }
     ];
     var pricingHtml = '';
-    rows.forEach(function(row) {
-      if (!row.label || !row.price) return;
-      var hasDisc = row.isFirst && p.discountPrice && parseFloat(p.discountPrice) > 0;
-      var pct     = hasDisc ? Math.round((1 - parseFloat(p.discountPrice)/parseFloat(row.price))*100) : 0;
-      var final   = hasDisc ? p.discountPrice : row.price;
-      pricingHtml += '<div class="price-row">' +
-        '<span class="price-qty-label">' + row.label + '</span>' +
-        '<span class="price-values">' +
-          (hasDisc ? '<span class="price-original">₹' + Number(row.price).toFixed(0) + '</span>' : '') +
-          '<span class="price-final">₹' + Number(final).toFixed(0) + '</span>' +
-          (hasDisc ? '<span class="discount-tag">' + pct + '% off</span>' : '') +
-        '</span></div>';
-    });
-    if (!pricingHtml) {
-      pricingHtml = '<div class="price-row"><span class="price-qty-label">Price</span><span class="price-values"><span class="price-final">₹' + Number(p.price).toFixed(0) + '</span></span></div>';
+    if (p.qty1Label && p.qty1Price) {
+      rows.forEach(function(row) {
+        if (!row.label || !row.price) return;
+        var hasDisc = row.isFirst && p.discountPrice && parseFloat(p.discountPrice) > 0;
+        var pct     = hasDisc ? Math.round((1 - parseFloat(p.discountPrice)/parseFloat(row.price))*100) : 0;
+        var final   = hasDisc ? p.discountPrice : row.price;
+        pricingHtml += '<div class="price-row">' +
+          '<span class="price-qty-label">' + row.label + '</span>' +
+          '<span class="price-values">' +
+            (hasDisc ? '<span class="price-original">₹' + Number(row.price).toFixed(0) + '</span>' : '') +
+            '<span class="price-final">₹' + Number(final).toFixed(0) + '</span>' +
+            (hasDisc ? '<span class="discount-tag">' + pct + '% off</span>' : '') +
+          '</span></div>';
+      });
+    } else {
+      var mrp     = parseFloat(p.mrp || p.price || 0);
+      var sRate   = parseFloat(p.sRate || 0);
+      var discPct = parseFloat(p.discountPct || 0);
+      var finalP  = discPct > 0 ? mrp*(1-discPct/100) : (sRate>0?sRate:mrp);
+      if (mrp > 0) {
+        pricingHtml += '<div class="price-row">' +
+          '<span class="price-qty-label">MRP' + (p.pack?' ('+p.pack+')':'') + '</span>' +
+          '<span class="price-values">' +
+            (discPct>0 ? '<span class="price-original">₹'+mrp.toFixed(0)+'</span>' : '') +
+            '<span class="price-final">₹'+finalP.toFixed(0)+'</span>' +
+            (discPct>0 ? '<span class="discount-tag">-'+discPct+'% off</span>' : '') +
+          '</span></div>';
+      }
+      if (!pricingHtml) pricingHtml = '<div class="price-row"><span class="price-qty-label">Price</span><span class="price-values"><span class="price-final">Call for price</span></span></div>';
     }
 
     var waMsg = encodeURIComponent('Hello Sri Sai Balaji Pharma, I would like to order: ' + p.name + ' (' + p.category + '). Please let me know availability and pricing. Thank you.');
