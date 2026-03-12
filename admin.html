@@ -1238,6 +1238,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
               <tr><td colspan="7" class="loading-row">⏳ Loading products from database…</td></tr>
             </tbody>
           </table>
+          <div id="productAdminPagination" style="display:flex;align-items:center;justify-content:center;gap:6px;padding:14px;flex-wrap:wrap;"></div>
         </div>
       </div>
 
@@ -1802,15 +1803,30 @@ function renderDashboard() {
 }
 
 // ── PRODUCTS ADMIN ─────────────────────────────────────────
+var adminProductPage = 1;
+var adminProductPageSize = 20;
+var adminProductFilter = '';
+
 function renderProductsAdmin(filter) {
-  var q    = (filter || '').toLowerCase();
-  var list = q ? products.filter(function(p){ return (p.name+p.category).toLowerCase().includes(q); }) : products;
+  if (filter !== undefined) { adminProductFilter = filter; adminProductPage = 1; }
+  var q    = (adminProductFilter || '').toLowerCase();
+  var list = q ? products.filter(function(p){ return (p.name+p.category).toLowerCase().indexOf(q) !== -1; }) : products;
   var tbody = document.getElementById('productAdminTable');
+  var pagBar = document.getElementById('productAdminPagination');
+
   if (!list.length) {
     tbody.innerHTML = '<tr><td colspan="7" class="loading-row">' + (products.length===0?'No products in database yet.':'No matching products.') + '</td></tr>';
+    if (pagBar) pagBar.innerHTML = '';
     return;
   }
-  tbody.innerHTML = list.map(function(p, i) {
+
+  var total = list.length;
+  var totalPages = Math.max(1, Math.ceil(total / adminProductPageSize));
+  if (adminProductPage > totalPages) adminProductPage = totalPages;
+  var start = (adminProductPage - 1) * adminProductPageSize;
+  var slice = list.slice(start, start + adminProductPageSize);
+
+  tbody.innerHTML = slice.map(function(p) {
     var realIdx = products.indexOf(p);
     return '<tr>' +
       '<td style="font-size:1.2rem;width:40px;">' + (p.icon||'💊') + '</td>' +
@@ -1825,6 +1841,30 @@ function renderProductsAdmin(filter) {
       '</div></td>' +
     '</tr>';
   }).join('');
+
+  // Pagination bar
+  if (pagBar) {
+    if (totalPages <= 1) { pagBar.innerHTML = ''; return; }
+    var btnStyle = 'border:1px solid #dde5ed;border-radius:6px;padding:6px 12px;font-size:0.78rem;font-weight:600;cursor:pointer;background:white;color:#526070;';
+    var activeBtnStyle = 'border:1px solid var(--teal);border-radius:6px;padding:6px 12px;font-size:0.78rem;font-weight:600;cursor:pointer;background:var(--teal);color:white;';
+    var html = '<button style="'+btnStyle+'" onclick="adminProdGoPage('+(adminProductPage-1)+')" '+(adminProductPage<=1?'disabled':'')+'>← Prev</button>';
+    var ps = Math.max(1, adminProductPage-2), pe = Math.min(totalPages, ps+4);
+    ps = Math.max(1, pe-4);
+    for (var i=ps; i<=pe; i++) {
+      html += '<button style="'+(i===adminProductPage?activeBtnStyle:btnStyle)+'" onclick="adminProdGoPage('+i+')">'+i+'</button>';
+    }
+    html += '<button style="'+btnStyle+'" onclick="adminProdGoPage('+(adminProductPage+1)+')" '+(adminProductPage>=totalPages?'disabled':'')+'>Next →</button>';
+    html += '<span style="font-size:0.78rem;color:#526070;">Page '+adminProductPage+' / '+totalPages+' &nbsp;('+total+' products)</span>';
+    pagBar.innerHTML = html;
+  }
+}
+
+function adminProdGoPage(n) {
+  var q = (adminProductFilter || '').toLowerCase();
+  var list = q ? products.filter(function(p){ return (p.name+p.category).toLowerCase().indexOf(q) !== -1; }) : products;
+  var totalPages = Math.max(1, Math.ceil(list.length / adminProductPageSize));
+  adminProductPage = Math.max(1, Math.min(n, totalPages));
+  renderProductsAdmin();
 }
 
 function filterProductsAdmin(q) { renderProductsAdmin(q); }
@@ -2295,7 +2335,7 @@ document.getElementById('editServiceOverlay').addEventListener('click', function
 // ── FULL CATALOG ────────────────────────────────────────────
 var catalogProducts = [];
 var catPage = 1;
-var catPageSize = 50;
+var catPageSize = 20;
 var catFiltered = [];
 
 var CAT_KEY = 'ssb_catalog';
