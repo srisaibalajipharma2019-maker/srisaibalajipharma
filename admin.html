@@ -1038,6 +1038,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
 .mob-nav-btn { position: relative; }
 
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <body>
 
 <!-- ════════════════════════════════════════════════════
@@ -1108,6 +1109,10 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
       <a class="sidebar-link" href="products-catalogue.html" target="_blank">
         <span class="sicon">📋</span> View Catalogue
       </a>
+      <button class="sidebar-link" onclick="showPanel('catalog',this)">
+        <span class="sicon">🗂️</span> Full Catalog
+        <span class="sidebar-badge" id="sbCatalog">0</span>
+      </button>
       <button class="sidebar-link" onclick="showPanel('services',this)">
         <span class="sicon">🩺</span> Services
         <span class="sidebar-badge" id="sbServices">0</span>
@@ -1324,6 +1329,103 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
         <div class="table-card">
           <div class="table-card-header"><div class="table-card-title">All Videos</div></div>
           <div id="videosAdminList"><div class="loading-row">⏳ Loading videos…</div></div>
+        </div>
+      </div>
+
+      <!-- ── FULL CATALOG ─────────────────────────── -->
+      <div class="admin-panel" id="panel-catalog">
+        <div class="panel-header">
+          <div class="panel-title">Full <em>Catalog</em></div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <label class="btn-gold" style="cursor:pointer;">
+              📤 Import Excel/CSV
+              <input type="file" id="catalogImportFile" accept=".csv,.xls,.xlsx" style="display:none;" onchange="importCatalogFile(this)">
+            </label>
+            <button class="btn-teal" onclick="openAddCatalogProduct()">➕ Add Product</button>
+            <button class="btn-sm danger" onclick="clearCatalog()" style="padding:9px 14px;">🗑 Clear All</button>
+          </div>
+        </div>
+
+        <!-- Stats bar -->
+        <div class="stats-row" style="margin-bottom:20px;">
+          <div class="stat-card"><div class="stat-card-label">Total Products</div><div class="stat-card-value" id="catTotal">0</div></div>
+          <div class="stat-card gold-top"><div class="stat-card-label">In Stock</div><div class="stat-card-value" id="catInStock" style="color:var(--gold);">0</div></div>
+          <div class="stat-card"><div class="stat-card-label">Companies</div><div class="stat-card-value" id="catCompanies">0</div></div>
+        </div>
+
+        <!-- Search & Filter -->
+        <div class="table-card" style="margin-bottom:16px;">
+          <div class="table-card-header" style="gap:10px;flex-wrap:wrap;">
+            <input class="tbl-search" style="width:260px;" placeholder="🔍 Search by name, company, barcode…" id="catSearch" oninput="renderCatalog()">
+            <select id="catCompanyFilter" onchange="renderCatalog()" style="border:1px solid #dde5ed;border-radius:7px;padding:7px 10px;font-size:0.82rem;font-family:'DM Sans',sans-serif;outline:none;">
+              <option value="">All Companies</option>
+            </select>
+            <select id="catStockFilter" onchange="renderCatalog()" style="border:1px solid #dde5ed;border-radius:7px;padding:7px 10px;font-size:0.82rem;font-family:'DM Sans',sans-serif;outline:none;">
+              <option value="">All Stock</option>
+              <option value="instock">In Stock</option>
+              <option value="outofstock">Out of Stock</option>
+            </select>
+            <span id="catResultCount" style="font-size:0.8rem;color:var(--text-muted);margin-left:auto;"></span>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Barcode</th>
+                <th>Product Name</th>
+                <th>Company</th>
+                <th>Pack</th>
+                <th>Qty</th>
+                <th>MRP (₹)</th>
+                <th>S.Rate (₹)</th>
+                <th>GST %</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="catalogTableBody">
+              <tr><td colspan="9" class="loading-row">Import your Excel file or add products manually.</td></tr>
+            </tbody>
+          </table>
+          <!-- Pagination -->
+          <div id="catPagination" style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border);flex-wrap:wrap;gap:10px;">
+            <span id="catPageInfo" style="font-size:0.8rem;color:var(--text-muted);"></span>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-sm" id="catPrevBtn" onclick="catChangePage(-1)">← Prev</button>
+              <span id="catPageNum" style="padding:5px 12px;font-size:0.82rem;font-weight:600;color:var(--teal);"></span>
+              <button class="btn-sm" id="catNextBtn" onclick="catChangePage(1)">Next →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add/Edit Catalog Product Modal -->
+      <div class="modal-overlay" id="catProductModal">
+        <div class="modal-box" style="max-width:560px;">
+          <div class="modal-head">
+            <h2 id="catModalTitle">➕ Add Product</h2>
+            <button class="modal-close" onclick="closeCatModal()">✕</button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="catEditId">
+            <div class="form-grid">
+              <div class="field"><label>Barcode / ID</label><input type="text" id="catFBarcode" placeholder="e.g. 1029232"></div>
+              <div class="field"><label>Company</label><input type="text" id="catFCompany" placeholder="e.g. ABBOTT"></div>
+              <div class="field form-full"><label>Product Name *</label><input type="text" id="catFName" placeholder="e.g. PARACETAMOL 500MG TAB"></div>
+              <div class="field"><label>Pack</label><input type="text" id="catFPack" placeholder="e.g. 10T"></div>
+              <div class="field"><label>Qty in Stock</label><input type="number" id="catFQty" placeholder="0"></div>
+              <div class="field"><label>MRP (₹)</label><input type="number" id="catFMrp" placeholder="0.00" step="0.01"></div>
+              <div class="field"><label>Selling Rate (₹)</label><input type="number" id="catFSrate" placeholder="0.00" step="0.01"></div>
+              <div class="field"><label>Purchase Rate (₹)</label><input type="number" id="catFPrate" placeholder="0.00" step="0.01"></div>
+              <div class="field"><label>GST %</label><input type="number" id="catFGst" placeholder="5"></div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn-cancel" onclick="closeCatModal()">Cancel</button>
+            <button class="btn-teal" onclick="saveCatProduct()">💾 Save Product</button>
+          </div>
         </div>
       </div>
 
@@ -1607,6 +1709,7 @@ function showPanel(name, btn) {
 
   if (name === 'products')  renderProductsAdmin();
   if (name === 'services')  renderServicesAdmin();
+  if (name === 'catalog')   renderCatalog();
   if (name === 'rxInbox')   rxRenderCards();
   if (name === 'videos')    renderVideosAdmin();
   if (name === 'dashboard') renderDashboard();
@@ -1630,6 +1733,7 @@ function initAdminData() {
   renderProductsAdmin();
   renderServicesAdmin();
   renderDashboard();
+  initCatalog();
 
   document.getElementById('setProductsBin').textContent = 'localStorage (offline-ready)';
   document.getElementById('setServicesBin').textContent = 'localStorage (offline-ready)';
@@ -2147,18 +2251,293 @@ document.addEventListener('keydown', function(e) {
     rxCloseReply();
     closeEditSvc();
     closeEditProduct();
+    closeCatModal();
   }
 });
 
 [document.getElementById('rxReplyModal'),
  document.getElementById('rxPreviewBox'),
- document.getElementById('editProductOverlay')].forEach(function(el) {
+ document.getElementById('editProductOverlay'),
+ document.getElementById('catProductModal')].forEach(function(el) {
   el.addEventListener('click', function(e){ if(e.target===this) { this.classList.remove('open'); } });
 });
 
 document.getElementById('editServiceOverlay').addEventListener('click', function(e){
   if(e.target===this) closeEditSvc();
 });
+
+// ── FULL CATALOG ────────────────────────────────────────────
+var catalogProducts = [];
+var catPage = 1;
+var catPageSize = 50;
+var catFiltered = [];
+
+var CAT_KEY = 'ssb_catalog';
+
+function catLoad() {
+  try { return JSON.parse(localStorage.getItem(CAT_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function catSave(arr) { localStorage.setItem(CAT_KEY, JSON.stringify(arr)); }
+
+function initCatalog() {
+  catalogProducts = catLoad();
+  renderCatalog();
+  updateCatalogBadge();
+  populateCompanyFilter();
+}
+
+function updateCatalogBadge() {
+  var el = document.getElementById('sbCatalog');
+  if (el) el.textContent = catalogProducts.length;
+  document.getElementById('catTotal').textContent = catalogProducts.length;
+  var inStock = catalogProducts.filter(function(p){ return p.qty > 0; }).length;
+  document.getElementById('catInStock').textContent = inStock;
+  var companies = new Set(catalogProducts.map(function(p){ return p.company; }));
+  document.getElementById('catCompanies').textContent = companies.size;
+}
+
+function populateCompanyFilter() {
+  var sel = document.getElementById('catCompanyFilter');
+  var companies = [...new Set(catalogProducts.map(function(p){ return p.company; }).filter(Boolean))].sort();
+  var current = sel.value;
+  sel.innerHTML = '<option value="">All Companies</option>' +
+    companies.map(function(c){ return '<option value="'+c+'"'+(c===current?' selected':'')+'>'+c+'</option>'; }).join('');
+}
+
+function renderCatalog() {
+  var q       = (document.getElementById('catSearch').value || '').toLowerCase();
+  var company = document.getElementById('catCompanyFilter').value;
+  var stock   = document.getElementById('catStockFilter').value;
+
+  catFiltered = catalogProducts.filter(function(p) {
+    var mQ = !q || p.name.toLowerCase().includes(q) || (p.company||'').toLowerCase().includes(q) || (p.id||'').includes(q);
+    var mC = !company || p.company === company;
+    var mS = !stock || (stock==='instock' ? p.qty>0 : p.qty<=0);
+    return mQ && mC && mS;
+  });
+
+  var total = catFiltered.length;
+  var totalPages = Math.max(1, Math.ceil(total / catPageSize));
+  if (catPage > totalPages) catPage = 1;
+
+  document.getElementById('catResultCount').textContent = total + ' products';
+  document.getElementById('catPageInfo').textContent = 'Showing ' + Math.min((catPage-1)*catPageSize+1, total) + '–' + Math.min(catPage*catPageSize, total) + ' of ' + total;
+  document.getElementById('catPageNum').textContent = 'Page ' + catPage + ' / ' + totalPages;
+  document.getElementById('catPrevBtn').disabled = catPage <= 1;
+  document.getElementById('catNextBtn').disabled = catPage >= totalPages;
+
+  var slice = catFiltered.slice((catPage-1)*catPageSize, catPage*catPageSize);
+  var tbody = document.getElementById('catalogTableBody');
+
+  if (!slice.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="loading-row">No products found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = slice.map(function(p) {
+    var inStock = p.qty > 0;
+    return '<tr>' +
+      '<td style="font-size:0.78rem;color:var(--text-muted);">' + (p.id||'—') + '</td>' +
+      '<td><strong style="font-size:0.875rem;">' + p.name + '</strong>' + (p.pack?'<br><span style="font-size:0.72rem;color:var(--text-muted);">'+p.pack+'</span>':'') + '</td>' +
+      '<td style="font-size:0.8rem;">' + (p.company||'—') + '</td>' +
+      '<td style="font-size:0.8rem;">' + (p.pack||'—') + '</td>' +
+      '<td><span class="tag ' + (inStock?'tag-active':'tag-rx') + '">' + (p.qty||0) + '</span></td>' +
+      '<td style="font-weight:600;">₹' + (p.mrp||0).toFixed(2) + '</td>' +
+      '<td>₹' + (p.sRate||0).toFixed(2) + '</td>' +
+      '<td>' + (p.gst||0) + '%</td>' +
+      '<td><div class="act-btns">' +
+        '<button class="btn-sm" onclick="openEditCatalogProduct(\'' + p.id + '\')">✏️ Edit</button>' +
+        '<button class="btn-sm danger" onclick="deleteCatalogProduct(\'' + p.id + '\')">🗑</button>' +
+      '</div></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function catChangePage(dir) {
+  var totalPages = Math.max(1, Math.ceil(catFiltered.length / catPageSize));
+  catPage = Math.max(1, Math.min(catPage + dir, totalPages));
+  renderCatalog();
+  document.getElementById('panel-catalog').scrollIntoView({behavior:'smooth'});
+}
+
+// Import Excel/CSV
+function importCatalogFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var ext = file.name.split('.').pop().toLowerCase();
+  var reader = new FileReader();
+
+  if (ext === 'csv') {
+    reader.onload = function(e) {
+      var lines = e.target.result.split('\n');
+      var headers = lines[0].split(',').map(function(h){ return h.trim().toLowerCase(); });
+      var imported = [];
+      for (var i = 1; i < lines.length; i++) {
+        var cols = lines[i].split(',');
+        if (!cols[0]) continue;
+        var obj = {};
+        headers.forEach(function(h, idx) { obj[h] = (cols[idx]||'').trim(); });
+        imported.push({
+          id:      obj['barcode'] || obj['id'] || String(Date.now()+i),
+          name:    obj['item name'] || obj['name'] || obj['product name'] || '',
+          company: obj['company'] || '',
+          pack:    obj['pack'] || '',
+          qty:     parseFloat(obj['qty'] || obj['qty.'] || 0) || 0,
+          mrp:     parseFloat(obj['mrp'] || 0) || 0,
+          sRate:   parseFloat(obj['s.rate'] || obj['srate'] || obj['selling rate'] || 0) || 0,
+          pRate:   parseFloat(obj['p.rate'] || obj['prate'] || obj['purchase rate'] || 0) || 0,
+          gst:     parseFloat(obj['gst %'] || obj['gst'] || 0) || 0
+        });
+      }
+      finishImport(imported, file.name);
+    };
+    reader.readAsText(file);
+  } else {
+    // XLS/XLSX — use SheetJS
+    reader.onload = function(e) {
+      var data = new Uint8Array(e.target.result);
+      var wb   = XLSX.read(data, {type:'array'});
+      var ws   = wb.Sheets[wb.SheetNames[0]];
+      var rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+
+      // Find header row (look for 'Barcode' or 'Item Name')
+      var headerRow = -1;
+      for (var r = 0; r < Math.min(rows.length, 15); r++) {
+        var rowStr = rows[r].join('|').toLowerCase();
+        if (rowStr.includes('barcode') || rowStr.includes('item name')) { headerRow = r; break; }
+      }
+
+      var imported = [];
+      var currentCompany = '';
+
+      if (headerRow === -1) {
+        alert('Could not find headers. Make sure your file has Barcode and Item Name columns.');
+        return;
+      }
+
+      for (var i = headerRow + 2; i < rows.length; i++) {
+        var row = rows[i];
+        var cell0 = String(row[0]||'').trim();
+        var name  = String(row[1]||'').trim();
+
+        if (cell0.toLowerCase().startsWith('company')) {
+          currentCompany = cell0.replace(/company\s*:\s*/i,'').trim();
+          continue;
+        }
+        var barcode = cell0.replace('.0','');
+        if (!barcode || !name || name.length < 2) continue;
+
+        imported.push({
+          id:      barcode,
+          name:    name,
+          company: currentCompany,
+          pack:    String(row[3]||'').trim(),
+          qty:     parseFloat(row[4]) || 0,
+          mrp:     parseFloat(row[5]) || 0,
+          sRate:   parseFloat(row[6]) || 0,
+          pRate:   parseFloat(row[7]) || 0,
+          gst:     parseFloat(row[11]) || 0
+        });
+      }
+      finishImport(imported, file.name);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+  input.value = '';
+}
+
+function finishImport(imported, filename) {
+  if (!imported.length) { alert('No products found in file.'); return; }
+  if (confirm('Import ' + imported.length + ' products from "' + filename + '"?\n\nThis will REPLACE your existing catalog.')) {
+    catalogProducts = imported;
+    catSave(catalogProducts);
+    catPage = 1;
+    renderCatalog();
+    updateCatalogBadge();
+    populateCompanyFilter();
+    alert('✅ Successfully imported ' + imported.length + ' products!');
+  }
+}
+
+// Add product
+function openAddCatalogProduct() {
+  document.getElementById('catModalTitle').textContent = '➕ Add Product';
+  document.getElementById('catEditId').value = '';
+  ['catFBarcode','catFCompany','catFName','catFPack','catFQty','catFMrp','catFSrate','catFPrate','catFGst'].forEach(function(id){
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('catProductModal').classList.add('open');
+}
+
+// Edit product
+function openEditCatalogProduct(id) {
+  var p = catalogProducts.find(function(x){ return x.id === id; });
+  if (!p) return;
+  document.getElementById('catModalTitle').textContent = '✏️ Edit Product';
+  document.getElementById('catEditId').value = id;
+  document.getElementById('catFBarcode').value = p.id || '';
+  document.getElementById('catFCompany').value = p.company || '';
+  document.getElementById('catFName').value    = p.name || '';
+  document.getElementById('catFPack').value    = p.pack || '';
+  document.getElementById('catFQty').value     = p.qty || 0;
+  document.getElementById('catFMrp').value     = p.mrp || 0;
+  document.getElementById('catFSrate').value   = p.sRate || 0;
+  document.getElementById('catFPrate').value   = p.pRate || 0;
+  document.getElementById('catFGst').value     = p.gst || 0;
+  document.getElementById('catProductModal').classList.add('open');
+}
+
+function closeCatModal() {
+  document.getElementById('catProductModal').classList.remove('open');
+}
+
+function saveCatProduct() {
+  var name = document.getElementById('catFName').value.trim();
+  if (!name) { alert('Product name is required.'); return; }
+  var editId = document.getElementById('catEditId').value;
+  var newId  = document.getElementById('catFBarcode').value.trim() || String(Date.now());
+  var product = {
+    id:      newId,
+    name:    name,
+    company: document.getElementById('catFCompany').value.trim(),
+    pack:    document.getElementById('catFPack').value.trim(),
+    qty:     parseFloat(document.getElementById('catFQty').value) || 0,
+    mrp:     parseFloat(document.getElementById('catFMrp').value) || 0,
+    sRate:   parseFloat(document.getElementById('catFSrate').value) || 0,
+    pRate:   parseFloat(document.getElementById('catFPrate').value) || 0,
+    gst:     parseFloat(document.getElementById('catFGst').value) || 0
+  };
+  if (editId) {
+    var idx = catalogProducts.findIndex(function(x){ return x.id === editId; });
+    if (idx > -1) catalogProducts[idx] = product;
+  } else {
+    catalogProducts.unshift(product);
+  }
+  catSave(catalogProducts);
+  renderCatalog();
+  updateCatalogBadge();
+  populateCompanyFilter();
+  closeCatModal();
+}
+
+function deleteCatalogProduct(id) {
+  var p = catalogProducts.find(function(x){ return x.id === id; });
+  if (!p) return;
+  if (!confirm('Delete "' + p.name + '"?')) return;
+  catalogProducts = catalogProducts.filter(function(x){ return x.id !== id; });
+  catSave(catalogProducts);
+  renderCatalog();
+  updateCatalogBadge();
+}
+
+function clearCatalog() {
+  if (!confirm('Delete ALL ' + catalogProducts.length + ' products from catalog? This cannot be undone.')) return;
+  catalogProducts = [];
+  catSave([]);
+  renderCatalog();
+  updateCatalogBadge();
+}
 </script>
 
 <!-- MOBILE BOTTOM NAV (visible only on mobile) -->
