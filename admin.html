@@ -1598,8 +1598,10 @@ function showPanel(name, btn) {
   document.getElementById('panel-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
 
-  if (name === 'rxInbox')  rxRenderCards();
-  if (name === 'videos')   renderVideosAdmin();
+  if (name === 'products')  renderProductsAdmin();
+  if (name === 'services')  renderServicesAdmin();
+  if (name === 'rxInbox')   rxRenderCards();
+  if (name === 'videos')    renderVideosAdmin();
   if (name === 'dashboard') renderDashboard();
 }
 
@@ -1622,7 +1624,7 @@ async function binCreate(data) {
 
 // ── INIT DATA ──────────────────────────────────────────────
 async function initAdminData() {
-  // Always render defaults immediately so the UI is never blank
+  // Always show defaults immediately — no blank screen while API loads
   products = defaultProducts;
   services = defaultServices;
   updateSidebarBadges();
@@ -1658,18 +1660,17 @@ async function initAdminData() {
     }
   } catch(e) {
     console.warn('DB load error, using defaults:', e);
-    // products/services already set to defaults above — no blank screen
   }
 
-  // Re-render with final data (remote or defaults)
+  // Re-render with final data (live DB or defaults)
   updateSidebarBadges();
   renderProductsAdmin();
   renderServicesAdmin();
   renderDashboard();
 
   // Settings info
-  document.getElementById('setProductsBin').textContent = PRODUCTS_BIN || 'Not connected (using defaults)';
-  document.getElementById('setServicesBin').textContent = SERVICES_BIN || 'Not connected (using defaults)';
+  document.getElementById('setProductsBin').textContent = PRODUCTS_BIN || 'Not connected';
+  document.getElementById('setServicesBin').textContent = SERVICES_BIN || 'Not connected';
   var rxAll = rxLoad();
   document.getElementById('setRxCount').textContent    = rxAll.length;
   document.getElementById('setVidCount').textContent   = loadVids().length;
