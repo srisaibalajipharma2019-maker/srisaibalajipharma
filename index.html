@@ -1939,15 +1939,8 @@
     } catch(e){}
   })();
 
-  // ── Nav admin button ──
-  function bmEnsureNavButton() {
-    if (document.getElementById('bmNavBtn')) return;
-    var navLinks = document.querySelector('.nav-links');
-    if (!navLinks) return;
-    var li = document.createElement('li');
-    li.innerHTML = '<button id="bmNavBtn" onclick="openBannerAdmin()" style="background:rgba(200,169,110,0.12);border:1px solid rgba(200,169,110,0.3);color:var(--gold);padding:6px 14px;border-radius:20px;font-size:0.78rem;font-weight:600;cursor:pointer;font-family:\'DM Sans\',sans-serif;transition:all 0.2s;" title="Manage Banners">🏷️ Banners</button>';
-    navLinks.insertBefore(li, navLinks.lastElementChild);
-  }
+  // ── Nav admin button (disabled — manage from admin panel only) ──
+  function bmEnsureNavButton() { /* removed from public site */ }
 
   // ── Password ──
   window.checkBannerPassword = function() {
@@ -2516,9 +2509,7 @@
     <p class="section-sub">From prescription fulfillment to health consultations — we are your one-stop healthcare partner.</p>
   </div>
 
-  <div style="margin-bottom:24px;">
-    <button class="btn-admin" onclick="openServiceAdmin()">⚙️ Admin: Manage Services</button>
-  </div>
+
 
   <div class="services-grid animate-up delay-1" id="servicesGrid"></div>
 </section>
@@ -2667,7 +2658,7 @@
       <button class="filter-btn" onclick="filterByCategory('Cardiac')">Cardiac</button>
       <button class="filter-btn" onclick="filterByCategory('Surgical')">Surgical</button>
     </div>
-    <button class="btn-admin" onclick="openAdminPanel()">⚙️ Admin: Manage Products</button>
+
   </div>
 
   <!-- Product Count -->
@@ -2902,7 +2893,7 @@
       <h2 class="section-title">Our Promotional <em style="font-style:normal;color:var(--teal);">Videos</em></h2>
       <p class="section-sub" style="margin-bottom:0;">Watch our latest health tips, product showcases, and pharmacy updates.</p>
     </div>
-    <button class="btn-primary" style="flex-shrink:0;" onclick="openVideoAdmin()">⚙️ Manage Videos</button>
+
   </div>
 
   <!-- Search & Filter -->
@@ -3595,37 +3586,29 @@
     return json.metadata.id;
   }
 
-  // ====== INIT: Load or create bins ======
-  async function initData() {
-    showLoading('productsGrid', 'Loading products...');
-    showLoading('servicesGrid', 'Loading services...');
-
+  // ====== INIT: Load from localStorage ======
+  function initData() {
     try {
-      // PRODUCTS
-      if (!PRODUCTS_BIN) {
-        PRODUCTS_BIN = await binCreate(defaultProducts);
-        localStorage.setItem('ssb_products_bin', PRODUCTS_BIN);
-      }
-      products = await binGet(PRODUCTS_BIN);
-      if (!products || !Array.isArray(products)) { products = defaultProducts; await binUpdate(PRODUCTS_BIN, products); }
-
-      // SERVICES
-      if (!SERVICES_BIN) {
-        SERVICES_BIN = await binCreate(defaultServices);
-        localStorage.setItem('ssb_services_bin', SERVICES_BIN);
-      }
-      services = await binGet(SERVICES_BIN);
-      if (!services || !Array.isArray(services)) { services = defaultServices; await binUpdate(SERVICES_BIN, services); }
-
+      var savedProducts = localStorage.getItem('ssb_products');
+      var savedServices = localStorage.getItem('ssb_services');
+      products = savedProducts ? JSON.parse(savedProducts) : defaultProducts;
+      services = savedServices ? JSON.parse(savedServices) : defaultServices;
+      if (!Array.isArray(products) || !products.length) products = defaultProducts;
+      if (!Array.isArray(services) || !services.length) services = defaultServices;
     } catch(e) {
-      // Fallback to defaults if API fails
       products = defaultProducts;
       services = defaultServices;
-      console.log('Using defaults:', e);
     }
-
+    // Always save to localStorage so catalogue page can read them
+    localStorage.setItem('ssb_products', JSON.stringify(products));
+    localStorage.setItem('ssb_services', JSON.stringify(services));
     renderProducts(getFilteredProducts());
     renderServices();
+  }
+
+  // Helpers kept for compatibility but now use localStorage
+  async function binUpdate(binId, data) {
+    localStorage.setItem('ssb_products', JSON.stringify(data));
   }
 
   function showLoading(gridId, msg) {
@@ -4415,13 +4398,6 @@
   loadWishes();
   initData();
   setTimeout(checkTodayWish, 1500);
-
-  // ====== KEYBOARD SHORTCUT FOR ADMIN (Ctrl+Shift+W) ======
-  document.addEventListener('keydown', function(e) {
-    if (e.ctrlKey && e.shiftKey && e.key === 'W') {
-      openWishesAdmin();
-    }
-  });
 
 </script>
 
