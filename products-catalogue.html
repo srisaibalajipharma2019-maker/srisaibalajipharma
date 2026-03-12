@@ -216,6 +216,24 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 }
 .footer a { color:var(--gold); text-decoration:none; }
 
+/* PAGINATION */
+.pagination {
+  display:flex; align-items:center; justify-content:center;
+  gap:8px; padding:24px 5% 0;
+  flex-wrap:wrap;
+}
+.page-btn {
+  border:1px solid #dde5ed; border-radius:8px;
+  padding:8px 16px; font-size:0.82rem; font-weight:600;
+  font-family:'DM Sans',sans-serif;
+  color:var(--text-muted); background:white;
+  cursor:pointer; transition:all 0.18s;
+}
+.page-btn:hover:not(:disabled) { border-color:var(--teal); color:var(--teal); }
+.page-btn.active { background:var(--teal); border-color:var(--teal); color:white; }
+.page-btn:disabled { opacity:0.4; cursor:not-allowed; }
+.page-info { font-size:0.8rem; color:var(--text-muted); padding:0 6px; }
+
 /* RESPONSIVE */
 @media (max-width:600px) {
   .products-grid { grid-template-columns:repeat(2,1fr); gap:12px; }
@@ -261,6 +279,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   <div class="products-grid" id="productsGrid">
     <div class="empty-state"><div class="icon">⏳</div><h3>Loading products…</h3></div>
   </div>
+  <div class="pagination" id="paginationBar"></div>
 </div>
 
 <div class="footer">
@@ -269,6 +288,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 </div>
 
 <script>
+var ITEMS_PER_PAGE = 20;
+var currentPage    = 1;
+var filteredList   = [];
+
 var defaultProducts = [
   { name:'Paracetamol 500mg',    category:'OTC',          price:18,  stock:200, desc:'Fever and pain relief tablet',              icon:'💊', rx:'No',  qty1Label:'Per Strip (15 tabs)',  qty1Price:18,  qty2Label:'Per Strip (30 tabs)', qty2Price:32,  qty3Label:'Per Pack (100 tabs)', qty3Price:95,  discountPrice:'' },
   { name:'Amoxicillin 250mg',    category:'Prescription', price:85,  stock:120, desc:'Antibiotic for bacterial infections',        icon:'💉', rx:'Yes', qty1Label:'Per Strip (10 caps)',  qty1Price:85,  qty2Label:'Per Strip (20 caps)', qty2Price:155, qty3Label:'',                   qty3Price:'',  discountPrice:72  },
@@ -300,23 +323,79 @@ function setCategory(cat, btn) {
   activeCategory = cat;
   document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
   if (btn) btn.classList.add('active');
+  currentPage = 1;
   applyFilters();
 }
 
 function applyFilters() {
-  var q = (document.getElementById('searchInput').value || '').toLowerCase();
-  var filtered = products.filter(function(p) {
+  var q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+  filteredList = products.filter(function(p) {
     var matchCat = activeCategory === 'All' || p.category === activeCategory;
-    var matchQ   = !q || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || (p.desc||'').toLowerCase().includes(q);
+    var matchQ   = !q ||
+      p.name.toLowerCase().indexOf(q) !== -1 ||
+      p.category.toLowerCase().indexOf(q) !== -1 ||
+      (p.desc || '').toLowerCase().indexOf(q) !== -1;
     return matchCat && matchQ;
   });
-  renderProducts(filtered);
+  currentPage = 1;
+  renderPage();
+}
+
+function renderPage() {
+  var total      = filteredList.length;
+  var totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
+  if (currentPage > totalPages) currentPage = totalPages;
+
+  var start = (currentPage - 1) * ITEMS_PER_PAGE;
+  var slice = filteredList.slice(start, start + ITEMS_PER_PAGE);
+
+  document.getElementById('resultCount').textContent =
+    total + ' product' + (total !== 1 ? 's' : '');
+
+  renderProducts(slice);
+  renderPagination(total, totalPages);
+}
+
+function renderPagination(total, totalPages) {
+  var bar = document.getElementById('paginationBar');
+  if (totalPages <= 1) { bar.innerHTML = ''; return; }
+
+  var html = '';
+  html += '<button class="page-btn" onclick="goPage(' + (currentPage-1) + ')" ' +
+          (currentPage <= 1 ? 'disabled' : '') + '>← Prev</button>';
+
+  // show up to 5 page numbers around current
+  var start = Math.max(1, currentPage - 2);
+  var end   = Math.min(totalPages, start + 4);
+  start     = Math.max(1, end - 4);
+
+  if (start > 1) html += '<button class="page-btn" onclick="goPage(1)">1</button>' +
+                         (start > 2 ? '<span class="page-info">…</span>' : '');
+  for (var i = start; i <= end; i++) {
+    html += '<button class="page-btn' + (i === currentPage ? ' active' : '') +
+            '" onclick="goPage(' + i + ')">' + i + '</button>';
+  }
+  if (end < totalPages) {
+    html += (end < totalPages - 1 ? '<span class="page-info">…</span>' : '') +
+            '<button class="page-btn" onclick="goPage(' + totalPages + ')">' + totalPages + '</button>';
+  }
+
+  html += '<button class="page-btn" onclick="goPage(' + (currentPage+1) + ')" ' +
+          (currentPage >= totalPages ? 'disabled' : '') + '>Next →</button>';
+  html += '<span class="page-info">Page ' + currentPage + ' of ' + totalPages + '</span>';
+
+  bar.innerHTML = html;
+}
+
+function goPage(n) {
+  var totalPages = Math.max(1, Math.ceil(filteredList.length / ITEMS_PER_PAGE));
+  currentPage = Math.max(1, Math.min(n, totalPages));
+  renderPage();
+  document.querySelector('.catalogue-wrap').scrollIntoView({behavior:'smooth'});
 }
 
 function renderProducts(list) {
   var grid  = document.getElementById('productsGrid');
-  var count = document.getElementById('resultCount');
-  count.textContent = list.length + ' product' + (list.length !== 1 ? 's' : '');
 
   if (!list.length) {
     grid.innerHTML = '<div class="empty-state"><div class="icon">🔍</div><h3>No products found</h3><p>Try a different search or category</p></div>';
