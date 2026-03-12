@@ -1634,13 +1634,6 @@ function initAdminData() {
   document.getElementById('setVidCount').textContent = loadVids().length;
 }
 
-  // Settings info
-  document.getElementById('setProductsBin').textContent = 'localStorage (offline-ready)';
-  document.getElementById('setServicesBin').textContent = 'localStorage (offline-ready)';
-  var rxAll = rxLoad();
-  document.getElementById('setRxCount').textContent    = rxAll.length;
-  document.getElementById('setVidCount').textContent   = loadVids().length;
-}
 
 function updateSidebarBadges() {
   document.getElementById('sbProducts').textContent = products.length;
