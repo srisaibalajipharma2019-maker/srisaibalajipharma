@@ -3589,9 +3589,19 @@
   // ====== INIT: Load from localStorage ======
   function initData() {
     try {
+      // Load from Full Catalog (admin panel import) first, then fallback to ssb_products, then defaults
+      var catalogData  = localStorage.getItem('ssb_catalog');
       var savedProducts = localStorage.getItem('ssb_products');
       var savedServices = localStorage.getItem('ssb_services');
-      products = savedProducts ? JSON.parse(savedProducts) : defaultProducts;
+
+      if (catalogData) {
+        products = JSON.parse(catalogData);
+      } else if (savedProducts) {
+        products = JSON.parse(savedProducts);
+      } else {
+        products = defaultProducts;
+      }
+
       services = savedServices ? JSON.parse(savedServices) : defaultServices;
       if (!Array.isArray(products) || !products.length) products = defaultProducts;
       if (!Array.isArray(services) || !services.length) services = defaultServices;
@@ -3599,16 +3609,13 @@
       products = defaultProducts;
       services = defaultServices;
     }
-    // Always save to localStorage so catalogue page can read them
-    localStorage.setItem('ssb_products', JSON.stringify(products));
-    localStorage.setItem('ssb_services', JSON.stringify(services));
     renderProducts(getFilteredProducts());
     renderServices();
   }
 
-  // Helpers kept for compatibility but now use localStorage
+  // Helpers kept for compatibility
   async function binUpdate(binId, data) {
-    localStorage.setItem('ssb_products', JSON.stringify(data));
+    localStorage.setItem('ssb_catalog', JSON.stringify(data));
   }
 
   function showLoading(gridId, msg) {
@@ -3647,42 +3654,63 @@
         imgHtml = '<div class="product-img">' + (p.icon || '💊') + '</div>';
       }
 
-      // Build pricing rows (up to 3 quantities)
+      // Build pricing — support both old format (qty1Label/qty1Price) and catalog format (mrp/sRate)
       var pricingHtml = '';
-      var rows = [
-        { label: p.qty1Label, price: p.qty1Price, isFirst: true },
-        { label: p.qty2Label, price: p.qty2Price, isFirst: false },
-        { label: p.qty3Label, price: p.qty3Price, isFirst: false }
-      ];
-      rows.forEach(function(row) {
-        if (!row.label || !row.price) return;
-        var hasDiscount = row.isFirst && p.discountPrice && parseFloat(p.discountPrice) > 0;
-        var discountPct = hasDiscount ? Math.round((1 - parseFloat(p.discountPrice) / parseFloat(row.price)) * 100) : 0;
-        var finalPrice = hasDiscount ? p.discountPrice : row.price;
-        pricingHtml += '<div class="price-row">' +
-          '<span class="price-qty-label">' + row.label + '</span>' +
-          '<span class="price-values">' +
-            (hasDiscount ? '<span class="price-original">&#8377;' + Number(row.price).toFixed(0) + '</span>' : '') +
-            '<span class="price-final">&#8377;' + Number(finalPrice).toFixed(0) + '</span>' +
-            (hasDiscount ? '<span class="discount-tag">' + discountPct + '% off</span>' : '') +
-          '</span>' +
-        '</div>';
-      });
-      // Fallback if no qty pricing set
-      if (!pricingHtml) {
-        pricingHtml = '<div class="price-row"><span class="price-qty-label">Price</span><span class="price-values"><span class="price-final">&#8377;' + Number(p.price).toFixed(2) + '</span></span></div>';
+      if (p.qty1Label && p.qty1Price) {
+        var rows = [
+          { label: p.qty1Label, price: p.qty1Price, isFirst: true },
+          { label: p.qty2Label, price: p.qty2Price, isFirst: false },
+          { label: p.qty3Label, price: p.qty3Price, isFirst: false }
+        ];
+        rows.forEach(function(row) {
+          if (!row.label || !row.price) return;
+          var hasDiscount = row.isFirst && p.discountPrice && parseFloat(p.discountPrice) > 0;
+          var discountPct = hasDiscount ? Math.round((1 - parseFloat(p.discountPrice) / parseFloat(row.price)) * 100) : 0;
+          var finalPrice = hasDiscount ? p.discountPrice : row.price;
+          pricingHtml += '<div class="price-row">' +
+            '<span class="price-qty-label">' + row.label + '</span>' +
+            '<span class="price-values">' +
+              (hasDiscount ? '<span class="price-original">&#8377;' + Number(row.price).toFixed(0) + '</span>' : '') +
+              '<span class="price-final">&#8377;' + Number(finalPrice).toFixed(0) + '</span>' +
+              (hasDiscount ? '<span class="discount-tag">' + discountPct + '% off</span>' : '') +
+            '</span>' +
+          '</div>';
+        });
+      } else {
+        // Catalog format: show MRP, discount, and final price
+        var mrp       = parseFloat(p.mrp || p.price || 0);
+        var sRate     = parseFloat(p.sRate || 0);
+        var discPct   = parseFloat(p.discountPct || 0);
+        var pack      = p.pack || '';
+        var finalP    = discPct > 0 ? mrp*(1-discPct/100) : (sRate>0?sRate:mrp);
+        if (mrp > 0) {
+          pricingHtml += '<div class="price-row">' +
+            '<span class="price-qty-label">MRP' + (pack?' ('+pack+')':'') + '</span>' +
+            '<span class="price-values">' +
+              (discPct>0 ? '<span class="price-original">&#8377;' + mrp.toFixed(0) + '</span>' : '') +
+              '<span class="price-final">&#8377;' + finalP.toFixed(0) + '</span>' +
+              (discPct>0 ? '<span class="discount-tag">-' + discPct + '% off</span>' : '') +
+            '</span>' +
+          '</div>';
+        }
+        if (!pricingHtml) {
+          pricingHtml = '<div class="price-row"><span class="price-qty-label">Price</span><span class="price-values"><span class="price-final">Call for price</span></span></div>';
+        }
       }
 
+      // Category: use category field or company field
+      var category = p.category || p.company || 'Medicine';
+
       // WhatsApp order message
-      var waMsg = encodeURIComponent('Hello Sri Sai Balaji Pharma, I would like to order: ' + p.name + ' (' + p.category + '). Please let me know availability and pricing. Thank you.');
+      var waMsg = encodeURIComponent('Hello Sri Sai Balaji Pharma, I would like to order: ' + p.name + (p.pack ? ' ('+p.pack+')' : '') + '. Please let me know availability and pricing. Thank you.');
       var waUrl = 'https://wa.me/919963800555?text=' + waMsg;
 
       return '<div class="product-card">' +
         imgHtml +
         '<div class="product-info">' +
-          '<div class="product-cat">' + p.category + '</div>' +
+          '<div class="product-cat">' + category + '</div>' +
           '<div class="product-name">' + p.name + '</div>' +
-          '<div class="product-desc">' + (p.desc || '') + '</div>' +
+          '<div class="product-desc">' + (p.desc || p.company || '') + '</div>' +
           '<div class="product-pricing">' + pricingHtml + '</div>' +
         '</div>' +
         '<div class="product-footer">' +
