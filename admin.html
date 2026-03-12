@@ -1518,16 +1518,19 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
 <script>
 'use strict';
 
-// ── CONFIG (must match index.html exactly) ─────────────────
+// ── CONFIG ─────────────────────────────────────────────────
 var ADMIN_PASSWORD_KEY = 'ssb_admin_pwd';
 var ADMIN_PASSWORD     = localStorage.getItem(ADMIN_PASSWORD_KEY) || 'admin123';
 
-var API_KEY  = '$2a$10$.vqm8sTBuySEzVNKF1kB6e8FtZFocZVqo.PBbGHQ4rZYhLNgumat2';
-var BASE_URL = 'https://api.jsonbin.io/v3/b';
-var HEADERS  = { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY, 'X-Bin-Private': 'false' };
-
-var PRODUCTS_BIN = localStorage.getItem('ssb_products_bin') || null;
-var SERVICES_BIN = localStorage.getItem('ssb_services_bin') || null;
+// ── STORAGE HELPERS (localStorage — no API needed) ─────────
+function lsGetProducts() {
+  try { var d = localStorage.getItem('ssb_products'); return d ? JSON.parse(d) : null; } catch(e) { return null; }
+}
+function lsSaveProducts(arr) { localStorage.setItem('ssb_products', JSON.stringify(arr)); }
+function lsGetServices() {
+  try { var d = localStorage.getItem('ssb_services'); return d ? JSON.parse(d) : null; } catch(e) { return null; }
+}
+function lsSaveServices(arr) { localStorage.setItem('ssb_services', JSON.stringify(arr)); }
 
 
 var defaultProducts = [
@@ -1605,72 +1608,35 @@ function showPanel(name, btn) {
   if (name === 'dashboard') renderDashboard();
 }
 
-// ── JSONBIN HELPERS ────────────────────────────────────────
-async function binGet(binId) {
-  var res  = await fetch(BASE_URL + '/' + binId + '/latest', { headers: { 'X-Master-Key': API_KEY } });
-  var data = await res.json();
-  return data.record;
-}
-
-async function binUpdate(binId, data) {
-  await fetch(BASE_URL + '/' + binId, { method: 'PUT', headers: HEADERS, body: JSON.stringify(data) });
-}
-
-async function binCreate(data) {
-  var res  = await fetch(BASE_URL, { method: 'POST', headers: HEADERS, body: JSON.stringify(data) });
-  var json = await res.json();
-  return json.metadata.id;
-}
+// ── SAVE HELPERS (localStorage) ────────────────────────────
+function saveProducts() { lsSaveProducts(products); }
+function saveServices() { lsSaveServices(services); }
 
 // ── INIT DATA ──────────────────────────────────────────────
-async function initAdminData() {
-  // Always show defaults immediately — no blank screen while API loads
-  products = defaultProducts;
-  services = defaultServices;
+function initAdminData() {
+  products = lsGetProducts() || defaultProducts;
+  services = lsGetServices() || defaultServices;
+  if (!Array.isArray(products) || !products.length) products = defaultProducts;
+  if (!Array.isArray(services) || !services.length) services = defaultServices;
+  // Ensure defaults saved so index.html can always read them
+  lsSaveProducts(products);
+  lsSaveServices(services);
+
   updateSidebarBadges();
   renderProductsAdmin();
   renderServicesAdmin();
   renderDashboard();
 
-  try {
-    // PRODUCTS: create bin if not yet initialised
-    if (!PRODUCTS_BIN) {
-      PRODUCTS_BIN = await binCreate(defaultProducts);
-      localStorage.setItem('ssb_products_bin', PRODUCTS_BIN);
-    }
-    var remoteProducts = await binGet(PRODUCTS_BIN);
-    if (Array.isArray(remoteProducts) && remoteProducts.length) {
-      products = remoteProducts;
-    } else {
-      products = defaultProducts;
-      await binUpdate(PRODUCTS_BIN, products);
-    }
-
-    // SERVICES: create bin if not yet initialised
-    if (!SERVICES_BIN) {
-      SERVICES_BIN = await binCreate(defaultServices);
-      localStorage.setItem('ssb_services_bin', SERVICES_BIN);
-    }
-    var remoteServices = await binGet(SERVICES_BIN);
-    if (Array.isArray(remoteServices) && remoteServices.length) {
-      services = remoteServices;
-    } else {
-      services = defaultServices;
-      await binUpdate(SERVICES_BIN, services);
-    }
-  } catch(e) {
-    console.warn('DB load error, using defaults:', e);
-  }
-
-  // Re-render with final data (live DB or defaults)
-  updateSidebarBadges();
-  renderProductsAdmin();
-  renderServicesAdmin();
-  renderDashboard();
+  document.getElementById('setProductsBin').textContent = 'localStorage (offline-ready)';
+  document.getElementById('setServicesBin').textContent = 'localStorage (offline-ready)';
+  var rxAll = rxLoad();
+  document.getElementById('setRxCount').textContent  = rxAll.length;
+  document.getElementById('setVidCount').textContent = loadVids().length;
+}
 
   // Settings info
-  document.getElementById('setProductsBin').textContent = PRODUCTS_BIN || 'Not connected';
-  document.getElementById('setServicesBin').textContent = SERVICES_BIN || 'Not connected';
+  document.getElementById('setProductsBin').textContent = 'localStorage (offline-ready)';
+  document.getElementById('setServicesBin').textContent = 'localStorage (offline-ready)';
   var rxAll = rxLoad();
   document.getElementById('setRxCount').textContent    = rxAll.length;
   document.getElementById('setVidCount').textContent   = loadVids().length;
@@ -1736,13 +1702,13 @@ function renderProductsAdmin(filter) {
 
 function filterProductsAdmin(q) { renderProductsAdmin(q); }
 
-async function adminAddProduct() {
+function adminAddProduct() {
   var name  = document.getElementById('pName').value.trim();
   var cat   = document.getElementById('pCat').value;
   var price = document.getElementById('pPrice').value;
   var msg   = document.getElementById('pMsg');
   if (!name || !cat || !price) { msg.innerHTML = '<span style="color:var(--danger);">Please fill in Name, Category, and Price.</span>'; return; }
-  if (!PRODUCTS_BIN) { console.warn('Products bin not ready'); return; }
+  
   msg.innerHTML = '<span style="color:var(--text-muted);">⏳ Saving…</span>';
   try {
     var p = {
@@ -1762,7 +1728,7 @@ async function adminAddProduct() {
       discountPrice: document.getElementById('pDiscountPrice').value ? parseFloat(document.getElementById('pDiscountPrice').value) : ''
     };
     products.push(p);
-    await binUpdate(PRODUCTS_BIN, products);
+    saveProducts();
     ['pName','pCat','pPrice','pStock','pDesc','pImage','pIcon','pRx',
      'pQty1Label','pQty1Price','pQty2Label','pQty2Price','pQty3Label','pQty3Price','pDiscountPrice']
       .forEach(function(id){ var el=document.getElementById(id); if(el){el.value='';} });
@@ -1775,11 +1741,11 @@ async function adminAddProduct() {
   setTimeout(function(){ document.getElementById('pMsg').innerHTML=''; }, 4000);
 }
 
-async function deleteProduct(idx) {
+function deleteProduct(idx) {
   var p = products[idx];
   if (!p || !confirm('Delete "' + p.name + '"? This will remove it from the website.')) return;
   products.splice(idx, 1);
-  await binUpdate(PRODUCTS_BIN, products);
+  saveProducts();
   renderProductsAdmin();
   updateSidebarBadges();
 }
@@ -1808,7 +1774,7 @@ function openEditProduct(idx) {
 
 function closeEditProduct() { document.getElementById('editProductOverlay').classList.remove('open'); }
 
-async function saveEditProduct() {
+function saveEditProduct() {
   var idx = parseInt(document.getElementById('epIndex').value);
   products[idx] = {
     name:     document.getElementById('epName').value.trim(),
@@ -1827,7 +1793,7 @@ async function saveEditProduct() {
     qty3Price: document.getElementById('epQty3Price').value ? parseFloat(document.getElementById('epQty3Price').value) : '',
     discountPrice: document.getElementById('epDiscountPrice').value ? parseFloat(document.getElementById('epDiscountPrice').value) : ''
   };
-  await binUpdate(PRODUCTS_BIN, products);
+  saveProducts();
   renderProductsAdmin();
   closeEditProduct();
 }
@@ -1851,16 +1817,16 @@ function renderServicesAdmin() {
   }).join('');
 }
 
-async function adminAddService() {
+function adminAddService() {
   var name = document.getElementById('sName').value.trim();
   var desc = document.getElementById('sDesc').value.trim();
   var msg  = document.getElementById('sMsg');
   if (!name || !desc) { msg.innerHTML = '<span style="color:var(--danger);">Please fill in Name and Description.</span>'; return; }
-  if (!SERVICES_BIN) { console.warn('Services bin not ready'); return; }
+  
   msg.innerHTML = '<span style="color:var(--text-muted);">⏳ Saving…</span>';
   try {
     services.push({ icon: document.getElementById('sIcon').value.trim()||'🏥', name: name, desc: desc });
-    await binUpdate(SERVICES_BIN, services);
+    saveServices();
     document.getElementById('sName').value = '';
     document.getElementById('sIcon').value = '';
     document.getElementById('sDesc').value = '';
@@ -1877,7 +1843,7 @@ async function deleteSvc(idx) {
   var s = services[idx];
   if (!s || !confirm('Delete "' + s.name + '"?')) return;
   services.splice(idx, 1);
-  await binUpdate(SERVICES_BIN, services);
+  saveServices();
   renderServicesAdmin();
   updateSidebarBadges();
 }
@@ -1901,7 +1867,7 @@ async function saveEditSvc() {
     name: document.getElementById('esName').value.trim(),
     desc: document.getElementById('esDesc').value.trim()
   };
-  await binUpdate(SERVICES_BIN, services);
+  saveServices();
   renderServicesAdmin();
   closeEditSvc();
 }
