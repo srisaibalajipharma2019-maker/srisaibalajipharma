@@ -1346,14 +1346,37 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
           </div>
         </div>
 
+        <!-- Bulk Discount Bar -->
+        <div class="form-card" style="margin-bottom:20px;background:linear-gradient(135deg,rgba(0,137,123,0.06),rgba(200,169,110,0.06));border:1px solid rgba(200,169,110,0.25);">
+          <h3 style="margin-bottom:14px;">🏷️ Bulk Discount — Apply to All Products</h3>
+          <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;">
+            <div class="field" style="margin:0;flex:0 0 160px;">
+              <label>Discount %</label>
+              <div style="position:relative;">
+                <input type="number" id="bulkDiscPct" placeholder="e.g. 10" min="0" max="100" style="padding-right:32px;">
+                <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);font-weight:700;color:var(--teal);">%</span>
+              </div>
+            </div>
+            <div class="field" style="margin:0;flex:0 0 180px;">
+              <label>Apply To</label>
+              <select id="bulkDiscTarget" style="border:1px solid #dde5ed;border-radius:8px;padding:10px 12px;font-size:0.875rem;font-family:'DM Sans',sans-serif;outline:none;background:white;">
+                <option value="all">All Products</option>
+                <option value="instock">In Stock Only</option>
+                <option value="outofstock">Out of Stock Only</option>
+              </select>
+            </div>
+            <button class="btn-teal" onclick="applyBulkDiscount()">✅ Apply Discount</button>
+            <button class="btn-sm danger" style="padding:10px 14px;" onclick="clearBulkDiscount()">✕ Clear All Discounts</button>
+            <span id="bulkDiscMsg" style="font-size:0.82rem;align-self:center;"></span>
+          </div>
+        </div>
+
         <!-- Stats bar -->
         <div class="stats-row" style="margin-bottom:20px;">
           <div class="stat-card"><div class="stat-card-label">Total Products</div><div class="stat-card-value" id="catTotal">0</div></div>
           <div class="stat-card gold-top"><div class="stat-card-label">In Stock</div><div class="stat-card-value" id="catInStock" style="color:var(--gold);">0</div></div>
           <div class="stat-card"><div class="stat-card-label">Companies</div><div class="stat-card-value" id="catCompanies">0</div></div>
         </div>
-
-        <!-- Search & Filter -->
         <div class="table-card" style="margin-bottom:16px;">
           <div class="table-card-header" style="gap:10px;flex-wrap:wrap;">
             <input class="tbl-search" style="width:260px;" placeholder="🔍 Search by name, company, barcode…" id="catSearch" oninput="renderCatalog()">
@@ -1380,7 +1403,8 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
                 <th>Pack</th>
                 <th>Qty</th>
                 <th>MRP (₹)</th>
-                <th>S.Rate (₹)</th>
+                <th>Discount</th>
+                <th>Final Price (₹)</th>
                 <th>GST %</th>
                 <th>Actions</th>
               </tr>
@@ -1420,6 +1444,8 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
               <div class="field"><label>Selling Rate (₹)</label><input type="number" id="catFSrate" placeholder="0.00" step="0.01"></div>
               <div class="field"><label>Purchase Rate (₹)</label><input type="number" id="catFPrate" placeholder="0.00" step="0.01"></div>
               <div class="field"><label>GST %</label><input type="number" id="catFGst" placeholder="5"></div>
+              <div class="field"><label>Discount %</label><input type="number" id="catFDiscount" placeholder="0" min="0" max="100" oninput="catCalcDiscount()"></div>
+              <div class="field"><label>Discounted Price (₹)</label><input type="number" id="catFDiscPrice" placeholder="Auto-calculated" step="0.01" oninput="catCalcDiscountReverse()"></div>
             </div>
           </div>
           <div class="modal-footer">
@@ -2337,14 +2363,21 @@ function renderCatalog() {
 
   tbody.innerHTML = slice.map(function(p) {
     var inStock = p.qty > 0;
+    var discPct   = parseFloat(p.discountPct || 0);
+    var mrp       = parseFloat(p.mrp || 0);
+    var finalPrice = discPct > 0 ? (mrp * (1 - discPct/100)) : (parseFloat(p.sRate || mrp));
+    var discHtml  = discPct > 0
+      ? '<span class="tag tag-active" style="font-size:0.7rem;">-' + discPct + '%</span>'
+      : '<span style="color:var(--text-muted);font-size:0.78rem;">—</span>';
     return '<tr>' +
       '<td style="font-size:0.78rem;color:var(--text-muted);">' + (p.id||'—') + '</td>' +
       '<td><strong style="font-size:0.875rem;">' + p.name + '</strong>' + (p.pack?'<br><span style="font-size:0.72rem;color:var(--text-muted);">'+p.pack+'</span>':'') + '</td>' +
       '<td style="font-size:0.8rem;">' + (p.company||'—') + '</td>' +
       '<td style="font-size:0.8rem;">' + (p.pack||'—') + '</td>' +
       '<td><span class="tag ' + (inStock?'tag-active':'tag-rx') + '">' + (p.qty||0) + '</span></td>' +
-      '<td style="font-weight:600;">₹' + (p.mrp||0).toFixed(2) + '</td>' +
-      '<td>₹' + (p.sRate||0).toFixed(2) + '</td>' +
+      '<td style="font-weight:600;">' + (mrp>0 ? '<span style="text-decoration:'+(discPct>0?'line-through':'none')+';color:'+(discPct>0?'#aaa':'inherit')+';">₹'+mrp.toFixed(0)+'</span>' : '—') + '</td>' +
+      '<td>' + discHtml + '</td>' +
+      '<td style="font-weight:700;color:var(--teal);">' + (finalPrice>0?'₹'+finalPrice.toFixed(0):'—') + '</td>' +
       '<td>' + (p.gst||0) + '%</td>' +
       '<td><div class="act-btns">' +
         '<button class="btn-sm" onclick="openEditCatalogProduct(\'' + p.id + '\')">✏️ Edit</button>' +
@@ -2460,6 +2493,51 @@ function finishImport(imported, filename) {
   }
 }
 
+// Discount helpers
+function catCalcDiscount() {
+  var mrp  = parseFloat(document.getElementById('catFMrp').value) || 0;
+  var pct  = parseFloat(document.getElementById('catFDiscount').value) || 0;
+  if (mrp > 0 && pct > 0) {
+    document.getElementById('catFDiscPrice').value = (mrp * (1 - pct/100)).toFixed(2);
+  }
+}
+
+function catCalcDiscountReverse() {
+  var mrp       = parseFloat(document.getElementById('catFMrp').value) || 0;
+  var discPrice = parseFloat(document.getElementById('catFDiscPrice').value) || 0;
+  if (mrp > 0 && discPrice > 0 && discPrice < mrp) {
+    document.getElementById('catFDiscount').value = ((1 - discPrice/mrp)*100).toFixed(1);
+  }
+}
+
+// Bulk discount
+function applyBulkDiscount() {
+  var pct    = parseFloat(document.getElementById('bulkDiscPct').value);
+  var target = document.getElementById('bulkDiscTarget').value;
+  var msg    = document.getElementById('bulkDiscMsg');
+  if (!pct || pct <= 0 || pct > 100) { msg.innerHTML = '<span style="color:var(--danger);">Enter a valid % between 1–100.</span>'; return; }
+  if (!confirm('Apply ' + pct + '% discount to ' + (target==='all'?'ALL':target==='instock'?'IN STOCK':'OUT OF STOCK') + ' products?')) return;
+  var count = 0;
+  catalogProducts.forEach(function(p) {
+    var apply = target==='all' || (target==='instock' && p.qty>0) || (target==='outofstock' && p.qty<=0);
+    if (apply) { p.discountPct = pct; count++; }
+  });
+  catSave(catalogProducts);
+  renderCatalog();
+  msg.innerHTML = '<span style="color:var(--success);">✅ ' + pct + '% discount applied to ' + count + ' products!</span>';
+  setTimeout(function(){ msg.innerHTML=''; }, 4000);
+}
+
+function clearBulkDiscount() {
+  if (!confirm('Remove ALL discounts from every product?')) return;
+  catalogProducts.forEach(function(p){ p.discountPct = 0; });
+  catSave(catalogProducts);
+  renderCatalog();
+  var msg = document.getElementById('bulkDiscMsg');
+  msg.innerHTML = '<span style="color:var(--success);">✅ All discounts cleared.</span>';
+  setTimeout(function(){ msg.innerHTML=''; }, 3000);
+}
+
 // Add product
 function openAddCatalogProduct() {
   document.getElementById('catModalTitle').textContent = '➕ Add Product';
@@ -2476,15 +2554,18 @@ function openEditCatalogProduct(id) {
   if (!p) return;
   document.getElementById('catModalTitle').textContent = '✏️ Edit Product';
   document.getElementById('catEditId').value = id;
-  document.getElementById('catFBarcode').value = p.id || '';
-  document.getElementById('catFCompany').value = p.company || '';
-  document.getElementById('catFName').value    = p.name || '';
-  document.getElementById('catFPack').value    = p.pack || '';
-  document.getElementById('catFQty').value     = p.qty || 0;
-  document.getElementById('catFMrp').value     = p.mrp || 0;
-  document.getElementById('catFSrate').value   = p.sRate || 0;
-  document.getElementById('catFPrate').value   = p.pRate || 0;
-  document.getElementById('catFGst').value     = p.gst || 0;
+  document.getElementById('catFBarcode').value  = p.id || '';
+  document.getElementById('catFCompany').value  = p.company || '';
+  document.getElementById('catFName').value     = p.name || '';
+  document.getElementById('catFPack').value     = p.pack || '';
+  document.getElementById('catFQty').value      = p.qty || 0;
+  document.getElementById('catFMrp').value      = p.mrp || 0;
+  document.getElementById('catFSrate').value    = p.sRate || 0;
+  document.getElementById('catFPrate').value    = p.pRate || 0;
+  document.getElementById('catFGst').value      = p.gst || 0;
+  document.getElementById('catFDiscount').value = p.discountPct || 0;
+  var mrp = parseFloat(p.mrp||0), disc = parseFloat(p.discountPct||0);
+  document.getElementById('catFDiscPrice').value = (mrp>0&&disc>0) ? (mrp*(1-disc/100)).toFixed(2) : '';
   document.getElementById('catProductModal').classList.add('open');
 }
 
@@ -2498,15 +2579,16 @@ function saveCatProduct() {
   var editId = document.getElementById('catEditId').value;
   var newId  = document.getElementById('catFBarcode').value.trim() || String(Date.now());
   var product = {
-    id:      newId,
-    name:    name,
-    company: document.getElementById('catFCompany').value.trim(),
-    pack:    document.getElementById('catFPack').value.trim(),
-    qty:     parseFloat(document.getElementById('catFQty').value) || 0,
-    mrp:     parseFloat(document.getElementById('catFMrp').value) || 0,
-    sRate:   parseFloat(document.getElementById('catFSrate').value) || 0,
-    pRate:   parseFloat(document.getElementById('catFPrate').value) || 0,
-    gst:     parseFloat(document.getElementById('catFGst').value) || 0
+    id:          newId,
+    name:        name,
+    company:     document.getElementById('catFCompany').value.trim(),
+    pack:        document.getElementById('catFPack').value.trim(),
+    qty:         parseFloat(document.getElementById('catFQty').value) || 0,
+    mrp:         parseFloat(document.getElementById('catFMrp').value) || 0,
+    sRate:       parseFloat(document.getElementById('catFSrate').value) || 0,
+    pRate:       parseFloat(document.getElementById('catFPrate').value) || 0,
+    gst:         parseFloat(document.getElementById('catFGst').value) || 0,
+    discountPct: parseFloat(document.getElementById('catFDiscount').value) || 0
   };
   if (editId) {
     var idx = catalogProducts.findIndex(function(x){ return x.id === editId; });
