@@ -1622,14 +1622,24 @@ async function binCreate(data) {
 
 // ── INIT DATA ──────────────────────────────────────────────
 async function initAdminData() {
+  // Always render defaults immediately so the UI is never blank
+  products = defaultProducts;
+  services = defaultServices;
+  updateSidebarBadges();
+  renderProductsAdmin();
+  renderServicesAdmin();
+  renderDashboard();
+
   try {
     // PRODUCTS: create bin if not yet initialised
     if (!PRODUCTS_BIN) {
       PRODUCTS_BIN = await binCreate(defaultProducts);
       localStorage.setItem('ssb_products_bin', PRODUCTS_BIN);
     }
-    products = await binGet(PRODUCTS_BIN);
-    if (!Array.isArray(products) || !products.length) {
+    var remoteProducts = await binGet(PRODUCTS_BIN);
+    if (Array.isArray(remoteProducts) && remoteProducts.length) {
+      products = remoteProducts;
+    } else {
       products = defaultProducts;
       await binUpdate(PRODUCTS_BIN, products);
     }
@@ -1639,25 +1649,27 @@ async function initAdminData() {
       SERVICES_BIN = await binCreate(defaultServices);
       localStorage.setItem('ssb_services_bin', SERVICES_BIN);
     }
-    services = await binGet(SERVICES_BIN);
-    if (!Array.isArray(services) || !services.length) {
+    var remoteServices = await binGet(SERVICES_BIN);
+    if (Array.isArray(remoteServices) && remoteServices.length) {
+      services = remoteServices;
+    } else {
       services = defaultServices;
       await binUpdate(SERVICES_BIN, services);
     }
   } catch(e) {
     console.warn('DB load error, using defaults:', e);
-    products = defaultProducts;
-    services = defaultServices;
+    // products/services already set to defaults above — no blank screen
   }
 
+  // Re-render with final data (remote or defaults)
   updateSidebarBadges();
   renderProductsAdmin();
   renderServicesAdmin();
   renderDashboard();
 
   // Settings info
-  document.getElementById('setProductsBin').textContent = PRODUCTS_BIN || 'Not connected';
-  document.getElementById('setServicesBin').textContent = SERVICES_BIN || 'Not connected';
+  document.getElementById('setProductsBin').textContent = PRODUCTS_BIN || 'Not connected (using defaults)';
+  document.getElementById('setServicesBin').textContent = SERVICES_BIN || 'Not connected (using defaults)';
   var rxAll = rxLoad();
   document.getElementById('setRxCount').textContent    = rxAll.length;
   document.getElementById('setVidCount').textContent   = loadVids().length;
