@@ -1839,7 +1839,7 @@ function adminAddService() {
   setTimeout(function(){ document.getElementById('sMsg').innerHTML=''; }, 4000);
 }
 
-async function deleteSvc(idx) {
+function deleteSvc(idx) {
   var s = services[idx];
   if (!s || !confirm('Delete "' + s.name + '"?')) return;
   services.splice(idx, 1);
@@ -1860,7 +1860,7 @@ function openEditSvc(idx) {
 
 function closeEditSvc() { document.getElementById('editServiceOverlay').classList.remove('open'); }
 
-async function saveEditSvc() {
+function saveEditSvc() {
   var idx = parseInt(document.getElementById('esIndex').value);
   services[idx] = {
     icon: document.getElementById('esIcon').value.trim()||'🏥',
