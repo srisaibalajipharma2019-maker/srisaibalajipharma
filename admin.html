@@ -1127,6 +1127,9 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
       </button>
 
       <div class="sidebar-section-label">Config</div>
+      <button class="sidebar-link" onclick="showPanel('categories',this)">
+        <span class="sicon">🏷️</span> Categories
+      </button>
       <button class="sidebar-link" onclick="showPanel('settings',this)">
         <span class="sicon">⚙️</span> Settings
       </button>
@@ -1140,6 +1143,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
         <div class="panel-header">
           <div class="panel-title">Dashboard <em>Overview</em></div>
         </div>
+        <div id="expiryAlertBox" style="display:none;background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.3);border-radius:10px;padding:12px 18px;margin-bottom:18px;font-size:0.85rem;line-height:1.7;"></div>
 
         <div class="stats-row">
           <div class="stat-card">
@@ -1163,7 +1167,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
             <div class="stat-card-sub">Published</div>
           </div>
           <div class="stat-card red-top">
-            <div class="stat-card-label">Low Stock</div>
+            <div class="stat-card-label">Low Stock (≤20)</div>
             <div class="stat-card-value" id="dashLowStock" style="color:#e53935;">—</div>
             <div class="stat-card-sub">Products below 3 units</div>
           </div>
@@ -1213,7 +1217,10 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
                 <option>Antibiotics</option><option>Cardiac</option><option>Diabetes</option>
                 <option>Neurological</option><option>Gastro</option><option>Respiratory</option>
                 <option>Vitamins</option><option>Ayurvedic</option><option>Baby Care</option>
-                <option>Surgical</option><option>Derma</option>
+                <option>Surgical</option><option>Derma</option><option>Oncology</option>
+                <option>Orthopaedic</option><option>Eye Care</option><option>ENT</option>
+                <option>Hormones</option><option>Psychiatry</option><option>Anti Coagulant</option>
+                <option>Nutrition</option>
               </select>
             </div>
             <div class="field"><label>Base Price (₹) *</label><input type="number" id="pPrice" placeholder="0.00"/></div>
@@ -1222,7 +1229,13 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
             <div class="field"><label>Rx Required?</label>
               <select id="pRx"><option value="Yes" selected>Yes – Rx Required</option><option value="No">No</option></select>
             </div>
+            <div class="field"><label>Brand / Manufacturer</label><input type="text" id="pBrand" placeholder="e.g. Cipla, Sun Pharma"/></div>
+            <div class="field"><label>Expiry Date</label><input type="date" id="pExpiry"/></div>
+            <div class="field"><label>Generic Substitute?</label>
+              <select id="pGeneric"><option value="">No</option><option value="Yes">Yes – Generic Available</option></select>
+            </div>
             <div class="field form-full"><label>Description</label><input type="text" id="pDesc" placeholder="Brief product description"/></div>
+            <div class="field form-full"><label>Dosage &amp; Usage Instructions</label><input type="text" id="pDosage" placeholder="e.g. 1 tablet twice daily after meals. Do not exceed prescribed dose."/></div>
             <div class="field form-full"><label>Image URL (optional)</label><input type="text" id="pImage" placeholder="https://…"/></div>
           </div>
 
@@ -1474,7 +1487,10 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
                   <option>Antibiotics</option><option>Cardiac</option><option>Diabetes</option>
                   <option>Neurological</option><option>Gastro</option><option>Respiratory</option>
                   <option>Vitamins</option><option>Ayurvedic</option><option>Baby Care</option>
-                  <option>Surgical</option><option>Derma</option>
+                  <option>Surgical</option><option>Derma</option><option>Oncology</option>
+                  <option>Orthopaedic</option><option>Eye Care</option><option>ENT</option>
+                  <option>Hormones</option><option>Psychiatry</option><option>Anti Coagulant</option>
+                  <option>Nutrition</option>
                 </select>
               </div>
               <div class="field"><label>Prescription Required?</label>
@@ -1552,6 +1568,53 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
               <button class="btn-sm danger" style="padding:10px;font-size:0.875rem;" onclick="clearRxData()">🗑 Clear All Rx Records</button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- ── CATEGORIES ─────────────────────────────── -->
+      <div class="admin-panel" id="panel-categories">
+        <div class="panel-header">
+          <div class="panel-title">Manage <em>Categories</em></div>
+        </div>
+
+        <div style="max-width:700px;">
+
+          <!-- Add new category -->
+          <div class="setting-card" style="margin-bottom:24px;">
+            <h3>➕ Add New Category</h3>
+            <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:14px;">
+              Create a new category. It will instantly appear in all filter tabs and product dropdowns.
+            </p>
+            <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+              <div class="field" style="flex:1;min-width:180px;margin:0;">
+                <label>Category Name</label>
+                <input type="text" id="newCatName" placeholder="e.g. Gynaecology" maxlength="40"
+                  onkeydown="if(event.key==='Enter')addCategory()"
+                  style="width:100%;border:1px solid #dde5ed;border-radius:9px;padding:10px 14px;font-size:0.875rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;"
+                  onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='#dde5ed'"/>
+              </div>
+              <div class="field" style="flex:1;min-width:140px;margin:0;">
+                <label>Emoji Icon</label>
+                <input type="text" id="newCatEmoji" placeholder="e.g. 🩺" maxlength="4"
+                  style="width:100%;border:1px solid #dde5ed;border-radius:9px;padding:10px 14px;font-size:1rem;font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.2s;"
+                  onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='#dde5ed'"/>
+              </div>
+              <button class="btn-teal" onclick="addCategory()" style="padding:10px 22px;white-space:nowrap;">
+                ➕ Add Category
+              </button>
+            </div>
+            <div id="catMsgBox" style="margin-top:10px;font-size:0.82rem;"></div>
+          </div>
+
+          <!-- Existing categories list -->
+          <div class="setting-card">
+            <h3>📋 Existing Categories</h3>
+            <p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:16px;">
+              Drag to reorder · Click ✏️ to rename · Click 🗑 to delete
+            </p>
+            <div id="catListWrap" style="display:flex;flex-direction:column;gap:8px;"></div>
+          </div>
+
         </div>
       </div>
 
@@ -1658,13 +1721,19 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
       <div class="form-grid">
         <div class="field"><label>Name</label><input type="text" id="epName"/></div>
         <div class="field"><label>Category</label>
-          <select id="epCat"><option>Antibiotics</option><option>Cardiac</option><option>Diabetes</option><option>Neurological</option><option>Gastro</option><option>Respiratory</option><option>Vitamins</option><option>Ayurvedic</option><option>Baby Care</option><option>Surgical</option><option>Derma</option></select>
+          <select id="epCat"><option>Antibiotics</option><option>Cardiac</option><option>Diabetes</option><option>Neurological</option><option>Gastro</option><option>Respiratory</option><option>Vitamins</option><option>Ayurvedic</option><option>Baby Care</option><option>Surgical</option><option>Derma</option><option>Oncology</option><option>Orthopaedic</option><option>Eye Care</option><option>ENT</option><option>Hormones</option><option>Psychiatry</option><option>Anti Coagulant</option><option>Nutrition</option></select>
         </div>
         <div class="field"><label>Price (₹)</label><input type="number" id="epPrice"/></div>
         <div class="field"><label>Stock</label><input type="number" id="epStock"/></div>
         <div class="field"><label>Icon</label><input type="text" id="epIcon"/></div>
         <div class="field"><label>Rx Required?</label><select id="epRx"><option value="Yes" selected>Yes – Rx Required</option><option value="No">No</option></select></div>
+        <div class="field"><label>Brand / Manufacturer</label><input type="text" id="epBrand" placeholder="e.g. Cipla"/></div>
+        <div class="field"><label>Expiry Date</label><input type="date" id="epExpiry"/></div>
+        <div class="field"><label>Generic Substitute?</label>
+          <select id="epGeneric"><option value="">No</option><option value="Yes">Yes – Generic Available</option></select>
+        </div>
         <div class="field form-full"><label>Description</label><input type="text" id="epDesc"/></div>
+        <div class="field form-full"><label>Dosage &amp; Usage Instructions</label><input type="text" id="epDosage" placeholder="e.g. 1 tablet twice daily after meals"/></div>
         <div class="field form-full"><label>Image URL</label><input type="text" id="epImage"/></div>
         <div class="field"><label>Qty 1 Label</label><input type="text" id="epQty1Label"/></div>
         <div class="field"><label>Qty 1 Price</label><input type="number" id="epQty1Price"/></div>
@@ -1772,12 +1841,13 @@ function showPanel(name, btn) {
   document.getElementById('panel-' + name).classList.add('active');
   if (btn) btn.classList.add('active');
 
-  if (name === 'products')  renderProductsAdmin();
-  if (name === 'services')  renderServicesAdmin();
-  if (name === 'catalog')   renderCatalog();
-  if (name === 'rxInbox')   rxRenderCards();
-  if (name === 'videos')    renderVideosAdmin();
-  if (name === 'dashboard') renderDashboard();
+  if (name === 'products')   renderProductsAdmin();
+  if (name === 'services')   renderServicesAdmin();
+  if (name === 'catalog')    renderCatalog();
+  if (name === 'rxInbox')    rxRenderCards();
+  if (name === 'videos')     renderVideosAdmin();
+  if (name === 'dashboard')  renderDashboard();
+  if (name === 'categories') renderCategoryPanel();
 }
 
 // ── SAVE HELPERS (localStorage) ────────────────────────────
@@ -1804,6 +1874,12 @@ function initAdminData() {
   document.getElementById('setServicesBin').textContent = 'localStorage (offline-ready)';
   var rxAll = rxLoad();
   document.getElementById('setRxCount').textContent  = rxAll.length;
+  // Expiry alerts
+  var allProds = lsGetProducts() || [];
+  var expiredCount = allProds.filter(function(p){ if(!p.expiry) return false; var d=new Date(p.expiry); return d < new Date(); }).length;
+  var expSoonCount = allProds.filter(function(p){ if(!p.expiry) return false; var d=new Date(p.expiry),now=new Date(); var diff=Math.floor((d-now)/(864e5)); return diff>=0&&diff<=90; }).length;
+  var expEl = document.getElementById('expiryAlertBox');
+  if (expEl) { expEl.style.display=(expiredCount||expSoonCount)?'block':'none'; expEl.innerHTML = (expiredCount?'<span style="color:#c0392b;font-weight:700;">⚠️ '+expiredCount+' product(s) EXPIRED</span><br>':'') + (expSoonCount?'<span style="color:#b7770d;font-weight:700;">⏳ '+expSoonCount+' product(s) expiring within 90 days</span>':''); }
   document.getElementById('setVidCount').textContent = loadVids().length;
 }
 
@@ -1898,7 +1974,10 @@ function renderProductsAdmin(filter) {
       '<td>' + (p.category||p.company||'Medicine') + '</td>' +
       '<td>₹' + Number(p.price||p.mrp||0).toFixed(0) + '</td>' +
       '<td>' + (parseInt(p.stock||0) < 3 ? '<span style="color:#e53935;font-weight:700;background:#fde8e8;padding:2px 8px;border-radius:6px;">&#9888; ' + (p.stock||0) + '</span>' : (p.stock||0)) + '</td>' +
-      '<td><span class="tag ' + (p.rx==='Yes'?'tag-rx':'tag-no-rx') + '">' + (p.rx==='Yes'?'Rx Req.':'No Rx') + '</span></td>' +
+      '<td><span class="tag ' + (p.rx==='Yes'?'tag-rx':'tag-no-rx') + '">' + (p.rx==='Yes'?'Rx Req.':'No Rx') + '</span>' +
+        (p.generic==='Yes'?' <span class="tag" style="background:rgba(52,152,219,0.09);color:#1a6fa8;border:1px solid rgba(52,152,219,0.2);font-size:0.65rem;">Generic</span>':'') +
+        (p.expiry ? (function(){var d=new Date(p.expiry),now=new Date(),diff=Math.floor((d-now)/(864e5)); return diff<0?'<span class="tag" style="background:rgba(192,57,43,0.1);color:#c0392b;font-size:0.65rem;">Expired</span>':diff<=90?'<span class="tag" style="background:rgba(243,156,18,0.1);color:#b7770d;font-size:0.65rem;">Exp Soon</span>':'';})():'') +
+      '</td>' +
       '<td><div class="act-btns">' +
         '<button class="btn-sm" onclick="openEditProduct('+realIdx+')">✏️ Edit</button>' +
         '<button class="btn-sm danger" onclick="deleteProduct('+realIdx+')">🗑 Delete</button>' +
@@ -1956,11 +2035,15 @@ function adminAddProduct() {
       qty2Price: document.getElementById('pQty2Price').value ? parseFloat(document.getElementById('pQty2Price').value) : '',
       qty3Label: document.getElementById('pQty3Label').value.trim(),
       qty3Price: document.getElementById('pQty3Price').value ? parseFloat(document.getElementById('pQty3Price').value) : '',
-      discountPrice: document.getElementById('pDiscountPrice').value ? parseFloat(document.getElementById('pDiscountPrice').value) : ''
+      discountPrice: document.getElementById('pDiscountPrice').value ? parseFloat(document.getElementById('pDiscountPrice').value) : '',
+      brand:   document.getElementById('pBrand').value.trim(),
+      expiry:  document.getElementById('pExpiry').value,
+      generic: document.getElementById('pGeneric').value,
+      dosage:  document.getElementById('pDosage').value.trim()
     };
     products.push(p);
     saveProducts();
-    ['pName','pCat','pPrice','pStock','pDesc','pImage','pIcon','pRx',
+    ['pName','pCat','pPrice','pStock','pDesc','pImage','pIcon','pRx','pBrand','pExpiry','pGeneric','pDosage',
      'pQty1Label','pQty1Price','pQty2Label','pQty2Price','pQty3Label','pQty3Price','pDiscountPrice']
       .forEach(function(id){ var el=document.getElementById(id); if(el){el.value='';} });
     renderProductsAdmin();
@@ -2000,6 +2083,10 @@ function openEditProduct(idx) {
   document.getElementById('epQty3Label').value = p.qty3Label||'';
   document.getElementById('epQty3Price').value = p.qty3Price||'';
   document.getElementById('epDiscountPrice').value = p.discountPrice||'';
+  document.getElementById('epBrand').value   = p.brand||'';
+  document.getElementById('epExpiry').value  = p.expiry||'';
+  document.getElementById('epGeneric').value = p.generic||'';
+  document.getElementById('epDosage').value  = p.dosage||'';
   document.getElementById('editProductOverlay').classList.add('open');
 }
 
@@ -2022,7 +2109,11 @@ function saveEditProduct() {
     qty2Price: document.getElementById('epQty2Price').value ? parseFloat(document.getElementById('epQty2Price').value) : '',
     qty3Label: document.getElementById('epQty3Label').value.trim(),
     qty3Price: document.getElementById('epQty3Price').value ? parseFloat(document.getElementById('epQty3Price').value) : '',
-    discountPrice: document.getElementById('epDiscountPrice').value ? parseFloat(document.getElementById('epDiscountPrice').value) : ''
+    discountPrice: document.getElementById('epDiscountPrice').value ? parseFloat(document.getElementById('epDiscountPrice').value) : '',
+    brand:   document.getElementById('epBrand').value.trim(),
+    expiry:  document.getElementById('epExpiry').value,
+    generic: document.getElementById('epGeneric').value,
+    dosage:  document.getElementById('epDosage').value.trim()
   };
   saveProducts();
   renderProductsAdmin();
@@ -2417,7 +2508,7 @@ var CAT_MAP_ADMIN = {
   'Surgical': 'Surgical', 'Derma': 'Derma', 'Diabetes': 'Diabetes',
   'Neurological': 'Neurological', 'Gastro': 'Gastro', 'Respiratory': 'Respiratory'
 };
-var VALID_CATS_ADMIN = ['Antibiotics','Cardiac','Diabetes','Neurological','Gastro','Respiratory','Vitamins','Ayurvedic','Baby Care','Surgical','Derma'];
+var VALID_CATS_ADMIN = ['Antibiotics','Cardiac','Diabetes','Neurological','Gastro','Respiratory','Vitamins','Ayurvedic','Baby Care','Surgical','Derma','Oncology','Orthopaedic','Eye Care','ENT','Hormones','Psychiatry','Anti Coagulant','Nutrition'];
 
 function migrateAdminProducts(list) {
   var changed = false;
@@ -2767,6 +2858,173 @@ function clearCatalog() {
   renderCatalog();
   updateCatalogBadge();
 }
+
+// ══════════════════════════════════════════════════════════════
+//  CATEGORY MANAGER
+// ══════════════════════════════════════════════════════════════
+
+var DEFAULT_CATEGORIES = [
+  { name:'Antibiotics',    emoji:'🦠' },
+  { name:'Cardiac',        emoji:'🫀' },
+  { name:'Diabetes',       emoji:'🩸' },
+  { name:'Neurological',   emoji:'🧠' },
+  { name:'Gastro',         emoji:'🫃' },
+  { name:'Respiratory',    emoji:'🫁' },
+  { name:'Vitamins',       emoji:'🌟' },
+  { name:'Ayurvedic',      emoji:'🌿' },
+  { name:'Baby Care',      emoji:'🍼' },
+  { name:'Surgical',       emoji:'🩹' },
+  { name:'Derma',          emoji:'✨' },
+  { name:'Oncology',       emoji:'🎗️' },
+  { name:'Orthopaedic',    emoji:'🦴' },
+  { name:'Eye Care',       emoji:'👁️' },
+  { name:'ENT',            emoji:'👂' },
+  { name:'Hormones',       emoji:'⚗️' },
+  { name:'Psychiatry',     emoji:'🧬' },
+  { name:'Anti Coagulant', emoji:'🩸' },
+  { name:'Nutrition',      emoji:'🥗' }
+];
+
+function catMgrLoad() {
+  try {
+    var d = localStorage.getItem('ssb_categories');
+    if (d) { var p = JSON.parse(d); if (Array.isArray(p) && p.length) return p; }
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_CATEGORIES));
+}
+
+function catMgrSave(cats) {
+  localStorage.setItem('ssb_categories', JSON.stringify(cats));
+}
+
+function addCategory() {
+  var nameEl  = document.getElementById('newCatName');
+  var emojiEl = document.getElementById('newCatEmoji');
+  var msgEl   = document.getElementById('catMsgBox');
+  var name    = (nameEl.value || '').trim();
+  var emoji   = (emojiEl.value || '').trim() || '💊';
+
+  if (!name) { showCatMsg('⚠️ Please enter a category name.', 'orange'); return; }
+
+  var cats = catMgrLoad();
+  if (cats.some(function(c){ return c.name.toLowerCase() === name.toLowerCase(); })) {
+    showCatMsg('⚠️ "' + name + '" already exists.', 'orange'); return;
+  }
+
+  cats.push({ name: name, emoji: emoji });
+  catMgrSave(cats);
+  nameEl.value  = '';
+  emojiEl.value = '';
+  showCatMsg('✅ "' + name + '" added successfully!', 'green');
+  renderCategoryPanel();
+  refreshAllCategoryDropdowns();
+}
+
+function deleteCategory(idx) {
+  var cats = catMgrLoad();
+  var cat  = cats[idx];
+  if (!confirm('Delete category "' + cat.name + '"?\nProducts assigned to it will keep their category label but the filter tab will be removed.')) return;
+  cats.splice(idx, 1);
+  catMgrSave(cats);
+  renderCategoryPanel();
+  refreshAllCategoryDropdowns();
+  showCatMsg('🗑 "' + cat.name + '" deleted.', '#c0392b');
+}
+
+function startRenameCategory(idx) {
+  var cats = catMgrLoad();
+  var cat  = cats[idx];
+  var row  = document.getElementById('cat-row-' + idx);
+  row.innerHTML =
+    '<input id="renameInput_' + idx + '" value="' + cat.name + '" maxlength="40" ' +
+    'style="flex:1;border:1px solid var(--teal);border-radius:7px;padding:7px 11px;font-size:0.875rem;font-family:\'DM Sans\',sans-serif;outline:none;" ' +
+    'onkeydown="if(event.key===\'Enter\')saveRename(' + idx + ')" />' +
+    '<input id="renameEmoji_' + idx + '" value="' + cat.emoji + '" maxlength="4" ' +
+    'style="width:60px;border:1px solid var(--teal);border-radius:7px;padding:7px 8px;font-size:1rem;font-family:\'DM Sans\',sans-serif;outline:none;text-align:center;" ' +
+    'onkeydown="if(event.key===\'Enter\')saveRename(' + idx + ')" />' +
+    '<button onclick="saveRename(' + idx + ')" style="background:var(--teal);color:white;border:none;border-radius:7px;padding:7px 14px;font-size:0.8rem;font-weight:600;cursor:pointer;">✅ Save</button>' +
+    '<button onclick="renderCategoryPanel()" style="background:#f0f4f8;color:var(--text-muted);border:none;border-radius:7px;padding:7px 12px;font-size:0.8rem;cursor:pointer;">✕</button>';
+  document.getElementById('renameInput_' + idx).focus();
+}
+
+function saveRename(idx) {
+  var cats    = catMgrLoad();
+  var oldName = cats[idx].name;
+  var newName = (document.getElementById('renameInput_' + idx).value || '').trim();
+  var newEmoji= (document.getElementById('renameEmoji_' + idx).value || '').trim() || cats[idx].emoji;
+
+  if (!newName) { showCatMsg('⚠️ Name cannot be empty.', 'orange'); return; }
+  if (cats.some(function(c, i){ return i !== idx && c.name.toLowerCase() === newName.toLowerCase(); })) {
+    showCatMsg('⚠️ "' + newName + '" already exists.', 'orange'); return;
+  }
+
+  // Also rename in all saved products
+  var prods = catLoad();
+  prods.forEach(function(p){ if (p.category === oldName) p.category = newName; });
+  catSave(prods);
+  catalogProducts = prods;
+
+  cats[idx].name  = newName;
+  cats[idx].emoji = newEmoji;
+  catMgrSave(cats);
+  renderCategoryPanel();
+  refreshAllCategoryDropdowns();
+  showCatMsg('✅ Renamed "' + oldName + '" → "' + newName + '"', 'green');
+}
+
+function showCatMsg(msg, color) {
+  var el = document.getElementById('catMsgBox');
+  if (!el) return;
+  el.textContent  = msg;
+  el.style.color  = color;
+  clearTimeout(el._t);
+  el._t = setTimeout(function(){ el.textContent = ''; }, 4000);
+}
+
+function renderCategoryPanel() {
+  var wrap = document.getElementById('catListWrap');
+  if (!wrap) return;
+  var cats = catMgrLoad();
+
+  if (!cats.length) {
+    wrap.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">No categories yet. Add one above.</p>';
+    return;
+  }
+
+  wrap.innerHTML = cats.map(function(cat, idx) {
+    return '<div id="cat-row-' + idx + '" style="' +
+      'display:flex;align-items:center;gap:10px;' +
+      'background:#f8fafc;border:1px solid #e2eaf3;border-radius:10px;padding:10px 14px;">' +
+      '<span style="font-size:1.3rem;min-width:28px;text-align:center;">' + cat.emoji + '</span>' +
+      '<span style="flex:1;font-weight:600;font-size:0.9rem;color:var(--text);">' + cat.name + '</span>' +
+      '<button onclick="startRenameCategory(' + idx + ')" title="Rename" ' +
+        'style="background:rgba(0,137,123,0.08);color:var(--teal);border:1px solid rgba(0,137,123,0.2);border-radius:7px;padding:5px 11px;font-size:0.78rem;cursor:pointer;">✏️ Rename</button>' +
+      '<button onclick="deleteCategory(' + idx + ')" title="Delete" ' +
+        'style="background:rgba(192,57,43,0.07);color:#c0392b;border:1px solid rgba(192,57,43,0.18);border-radius:7px;padding:5px 11px;font-size:0.78rem;cursor:pointer;">🗑 Delete</button>' +
+    '</div>';
+  }).join('');
+}
+
+function refreshAllCategoryDropdowns() {
+  var cats = catMgrLoad();
+  var opts = cats.map(function(c){ return '<option value="' + c.name + '">' + c.name + '</option>'; }).join('');
+  var optsWithBlank = '<option value="">Select category</option>' + opts;
+
+  ['pCat','catFCategory'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = optsWithBlank;
+  });
+  var epCat = document.getElementById('epCat');
+  if (epCat) epCat.innerHTML = opts;
+}
+
+// Init categories on load
+(function() {
+  var saved = localStorage.getItem('ssb_categories');
+  if (!saved) catMgrSave(DEFAULT_CATEGORIES);
+  // refresh dropdowns after DOM ready
+  setTimeout(refreshAllCategoryDropdowns, 100);
+})();
 </script>
 
 <!-- MOBILE BOTTOM NAV (visible only on mobile) -->
