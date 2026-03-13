@@ -816,6 +816,10 @@
   .product-count { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; font-weight: 500; }
   .product-card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); transition: transform 0.25s, box-shadow 0.25s; display: flex; flex-direction: column; }
   .product-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(0,137,123,0.1); }
+  .product-card.rx-card { border-color: rgba(192,57,43,0.25); border-top: 3px solid #c0392b; }
+  .product-card.rx-card:hover { box-shadow: 0 10px 32px rgba(192,57,43,0.12); }
+  .product-card.rx-card .product-img { background: linear-gradient(135deg, #fde8e8, #fccfcf); }
+  .rx-card-banner { background: #c0392b; color: white; font-size: 0.65rem; font-weight: 700; text-align: center; padding: 3px 8px; letter-spacing: 0.8px; text-transform: uppercase; }
   .product-img { height: 100px; background: linear-gradient(135deg, #e8f5e9, #b2dfdb); display: flex; align-items: center; justify-content: center; font-size: 40px; }
   .product-info { padding: 14px; flex:1; display:flex; flex-direction:column; gap:4px; }
   .product-name { font-weight: 600; font-size: 0.9rem; color: var(--text); }
@@ -829,6 +833,11 @@
   .stock-info { font-size: 0.75rem; color: var(--text-muted); }
   .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
   .empty-state h3 { font-size: 1.2rem; margin: 10px 0 6px; color: var(--text); }
+  .page-btn { padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; color: var(--text); font-size: 0.82rem; cursor: pointer; transition: all 0.2s; }
+  .page-btn:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); }
+  .page-btn.active { background: var(--teal); border-color: var(--teal); color: white; font-weight: 600; }
+  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .page-info { font-size: 0.82rem; color: var(--text-muted); padding: 0 4px; }
   /* MODAL */
   .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(4px); }
   .modal-box { background: white; border-radius: 16px; width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 80px rgba(0,0,0,0.25); animation: fadeUp 0.3s ease; }
@@ -2667,6 +2676,9 @@
   <!-- Products Grid -->
   <div class="products-grid" id="productsGrid"></div>
 
+  <!-- Pagination Bar -->
+  <div id="mainPaginationBar" style="display:flex;justify-content:center;align-items:center;gap:6px;flex-wrap:wrap;margin:24px 0 8px;"></div>
+
   <!-- View Full Catalogue CTA -->
   <div style="text-align:center;margin-top:36px;">
     <a href="products-catalogue.html" class="btn-primary" style="display:inline-flex;align-items:center;gap:10px;font-size:0.95rem;">
@@ -3609,7 +3621,7 @@
       products = defaultProducts;
       services = defaultServices;
     }
-    renderProducts(getFilteredProducts());
+    mainCurrentPage = 1; mainFilteredList = getFilteredProducts(); renderProductsPage();
     renderServices();
   }
 
@@ -3701,11 +3713,32 @@
       // Category: use category field or company field
       var category = p.category || p.company || 'Medicine';
 
-      // WhatsApp order message
-      var waMsg = encodeURIComponent('Hello Sri Sai Balaji Pharma, I would like to order: ' + p.name + (p.pack ? ' ('+p.pack+')' : '') + '. Please let me know availability and pricing. Thank you.');
+      // WhatsApp order message - rich format
+      var priceText = '';
+      if (p.qty1Label && p.qty1Price) {
+        var fp1 = (p.discountPrice && parseFloat(p.discountPrice) > 0) ? p.discountPrice : p.qty1Price;
+        priceText = p.qty1Label + ': Rs.' + Number(fp1).toFixed(0);
+      } else {
+        var mrpV = parseFloat(p.mrp || p.price || 0);
+        var dpV  = parseFloat(p.discountPct || 0);
+        var fpV  = dpV > 0 ? mrpV*(1-dpV/100) : (parseFloat(p.sRate||0) > 0 ? parseFloat(p.sRate) : mrpV);
+        if (fpV > 0) priceText = 'MRP' + (p.pack?' ('+p.pack+')':'') + ': Rs.' + fpV.toFixed(0);
+      }
+      var waLines = [
+        '*Order Request - Sri Sai Balaji Pharma*',
+        '',
+        'Product: ' + p.name + (p.pack ? ' (' + p.pack + ')' : ''),
+        'Category: ' + category,
+        priceText ? 'Price: ' + priceText : '',
+        p.rx === 'Yes' ? 'Note: Prescription required - please have it ready' : '',
+        '',
+        'Kindly confirm availability and delivery. Thank you!'
+      ].filter(function(l,i){ return i < 4 || l !== ''; });
+      var waMsg = encodeURIComponent(waLines.join('\n'));
       var waUrl = 'https://wa.me/919963800555?text=' + waMsg;
 
-      return '<div class="product-card">' +
+      return '<div class="product-card' + (p.rx === 'Yes' ? ' rx-card' : '') + '">' +
+        (p.rx === 'Yes' ? '<div class="rx-card-banner">📋 Prescription Required</div>' : '') +
         imgHtml +
         '<div class="product-info">' +
           '<div class="product-cat">' + category + '</div>' +
@@ -3716,7 +3749,7 @@
         '<div class="product-footer">' +
           '<span class="rx-badge ' + (p.rx === 'Yes' ? 'rx-yes' : 'rx-no') + '">' +
             (p.rx === 'Yes' ? '📋 Rx Required' : '✅ No Rx') + '</span>' +
-          '<a href="' + waUrl + '" target="_blank" rel="noopener" class="product-wa-btn" aria-label="Order ' + p.name + ' on WhatsApp">' +
+          '<a href="' + waUrl + '" target="_blank" rel="noopener" class="product-wa-btn" aria-label="Order ' + p.name + ' on WhatsApp" onclick="showOrderToast(this)">' +
             '<svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.886 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>' +
             'Order' +
           '</a>' +
@@ -3725,23 +3758,82 @@
     }).join('');
   }
 
+  // ====== PAGINATION STATE ======
+  var MAIN_ITEMS_PER_PAGE = 20;
+  var mainCurrentPage = 1;
+  var mainFilteredList = [];
+
   function getFilteredProducts() {
-    var q = (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '').toLowerCase();
+    var q = (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '').toLowerCase().trim();
     return products.filter(function(p) {
-      var matchCat = activeCategory === 'All' || p.category === activeCategory;
-      var matchQ = !q || p.name.toLowerCase().includes(q) || p.category.toLowerCase().includes(q);
+      var cat = (p.category || p.company || '').toLowerCase();
+      var matchCat = activeCategory === 'All' || (p.category || p.company || '') === activeCategory;
+      var matchQ = !q ||
+        (p.name || '').toLowerCase().includes(q) ||
+        cat.includes(q) ||
+        (p.desc || '').toLowerCase().includes(q) ||
+        (p.company || '').toLowerCase().includes(q);
       return matchCat && matchQ;
     });
   }
 
-  window.filterProducts = function() { renderProducts(getFilteredProducts()); };
+  function renderProductsPage() {
+    var total = mainFilteredList.length;
+    var totalPages = Math.max(1, Math.ceil(total / MAIN_ITEMS_PER_PAGE));
+    if (mainCurrentPage > totalPages) mainCurrentPage = totalPages;
+    var start = (mainCurrentPage - 1) * MAIN_ITEMS_PER_PAGE;
+    var slice = mainFilteredList.slice(start, start + MAIN_ITEMS_PER_PAGE);
+
+    var grid = document.getElementById('productsGrid');
+    var empty = document.getElementById('emptyState');
+    var count = document.getElementById('productCount');
+    if (!grid) return;
+
+    if (!mainFilteredList.length) {
+      grid.innerHTML = ''; empty.style.display = 'block'; count.textContent = ''; renderMainPagination(0, 1); return;
+    }
+    empty.style.display = 'none';
+    count.textContent = 'Showing ' + (start + 1) + '–' + Math.min(start + MAIN_ITEMS_PER_PAGE, total) + ' of ' + total + ' product' + (total !== 1 ? 's' : '');
+    renderProducts(slice);
+    renderMainPagination(total, totalPages);
+  }
+
+  function renderMainPagination(total, totalPages) {
+    var bar = document.getElementById('mainPaginationBar');
+    if (!bar) return;
+    if (totalPages <= 1) { bar.innerHTML = ''; return; }
+    var html = '';
+    html += '<button class="page-btn" onclick="mainGoPage(' + (mainCurrentPage-1) + ')" ' + (mainCurrentPage <= 1 ? 'disabled' : '') + '>← Prev</button>';
+    var pStart = Math.max(1, mainCurrentPage - 2);
+    var pEnd   = Math.min(totalPages, pStart + 4);
+    pStart     = Math.max(1, pEnd - 4);
+    if (pStart > 1) html += '<button class="page-btn" onclick="mainGoPage(1)">1</button>' + (pStart > 2 ? '<span class="page-info">…</span>' : '');
+    for (var i = pStart; i <= pEnd; i++) {
+      html += '<button class="page-btn' + (i === mainCurrentPage ? ' active' : '') + '" onclick="mainGoPage(' + i + ')">' + i + '</button>';
+    }
+    if (pEnd < totalPages) {
+      html += (pEnd < totalPages - 1 ? '<span class="page-info">…</span>' : '') + '<button class="page-btn" onclick="mainGoPage(' + totalPages + ')">' + totalPages + '</button>';
+    }
+    html += '<button class="page-btn" onclick="mainGoPage(' + (mainCurrentPage+1) + ')" ' + (mainCurrentPage >= totalPages ? 'disabled' : '') + '>Next →</button>';
+    html += '<span class="page-info">Page ' + mainCurrentPage + ' of ' + totalPages + '</span>';
+    bar.innerHTML = html;
+  }
+
+  window.mainGoPage = function(n) {
+    var totalPages = Math.max(1, Math.ceil(mainFilteredList.length / MAIN_ITEMS_PER_PAGE));
+    mainCurrentPage = Math.max(1, Math.min(n, totalPages));
+    renderProductsPage();
+    document.getElementById('products').scrollIntoView({behavior:'smooth'});
+  };
+
+  window.filterProducts = function() { mainCurrentPage = 1; mainFilteredList = getFilteredProducts(); renderProductsPage(); };
 
   window.filterByCategory = function(cat) {
     activeCategory = cat;
     document.querySelectorAll('.filter-btn').forEach(function(b) {
       b.classList.toggle('active', b.textContent.trim() === cat);
     });
-    renderProducts(getFilteredProducts());
+    mainCurrentPage = 1; mainFilteredList = getFilteredProducts(); renderProductsPage();
   };
 
   // Used by footer links: scrolls to #products then filters, waiting for data if needed
@@ -3857,7 +3949,7 @@
       document.getElementById('pDiscountValue').value = '';
       document.getElementById('pDiscountPrice').value = '';
       document.getElementById('pDiscountHint').textContent = '';
-      renderProducts(getFilteredProducts());
+      mainCurrentPage = 1; mainFilteredList = getFilteredProducts(); renderProductsPage();
       renderAdminList();
       msg.innerHTML = '<span style="color:#27ae60;">✅ "' + name + '" saved! Visible to everyone now.</span>';
     } catch(e) {
@@ -3869,7 +3961,7 @@
   function renderAdminList() {
     var q = (document.getElementById('adminSearch') ? document.getElementById('adminSearch').value : '').toLowerCase();
     var filtered = products.map(function(p, i) { return { p: p, i: i }; }).filter(function(x) {
-      return !q || x.p.name.toLowerCase().includes(q) || x.p.category.toLowerCase().includes(q);
+      return !q || (x.p.name||'').toLowerCase().includes(q) || (x.p.category||x.p.company||'').toLowerCase().includes(q) || (x.p.desc||'').toLowerCase().includes(q);
     });
     var list = document.getElementById('adminList');
     if (!list) return;
@@ -3879,7 +3971,7 @@
         '<div class="admin-item-icon">' + (x.p.icon || '💊') + '</div>' +
         '<div class="admin-item-info">' +
           '<div class="admin-item-name">' + x.p.name + '</div>' +
-          '<div class="admin-item-meta">' + x.p.category + ' · ₹' + x.p.price + ' · Stock: ' + x.p.stock + '</div>' +
+          '<div class="admin-item-meta">' + (x.p.category||x.p.company||'Medicine') + ' · ₹' + (x.p.price||x.p.mrp||0) + ' · Stock: ' + (x.p.stock||'N/A') + '</div>' +
         '</div>' +
         '<div class="admin-item-actions">' +
           '<button class="btn-edit" onclick="openEdit(' + x.i + ')">✏️ Edit</button>' +
@@ -3894,7 +3986,7 @@
     if (p && confirm('Delete "' + p.name + '"?')) {
       products.splice(idx, 1);
       await binUpdate(PRODUCTS_BIN, products);
-      renderProducts(getFilteredProducts());
+      mainCurrentPage = 1; mainFilteredList = getFilteredProducts(); renderProductsPage();
       renderAdminList();
     }
   };
@@ -3979,7 +4071,7 @@
       })()
     };
     await binUpdate(PRODUCTS_BIN, products);
-    renderProducts(getFilteredProducts());
+    mainCurrentPage = 1; mainFilteredList = getFilteredProducts(); renderProductsPage();
     renderAdminList();
     closeEditModal();
   };
@@ -5459,6 +5551,63 @@
 
   document.querySelectorAll('.reveal').forEach(function(el) {
     observer.observe(el);
+  });
+})();
+</script>
+
+<!-- ====== TOAST NOTIFICATION ====== -->
+<div id="orderToast" style="
+  position:fixed; bottom:90px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:#1a3c34; color:#fff; padding:12px 22px; border-radius:50px;
+  font-size:0.85rem; font-weight:500; display:flex; align-items:center; gap:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.25); z-index:9999;
+  opacity:0; transition:opacity 0.3s ease, transform 0.3s ease; pointer-events:none;
+  white-space:nowrap; max-width:90vw;
+">
+  <svg viewBox="0 0 24 24" fill="#25D366" width="18" height="18"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.886 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  <span id="orderToastMsg">Opening WhatsApp...</span>
+</div>
+
+<!-- ====== BACK TO TOP BUTTON ====== -->
+<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top" style="
+  position:fixed; bottom:24px; right:24px; width:46px; height:46px;
+  border-radius:50%; border:none; cursor:pointer;
+  background:var(--teal); color:#fff; font-size:1.2rem;
+  box-shadow:0 4px 18px rgba(0,137,123,0.35);
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; transform:translateY(10px);
+  transition:opacity 0.3s ease, transform 0.3s ease;
+  z-index:999; pointer-events:none;
+">&#8679;</button>
+
+<script>
+// ── Toast notification ──
+window.showOrderToast = function(el) {
+  var name = el && el.closest && el.closest('.product-card')
+    ? el.closest('.product-card').querySelector('.product-name').textContent
+    : 'product';
+  var toast = document.getElementById('orderToast');
+  var msg   = document.getElementById('orderToastMsg');
+  if (!toast) return;
+  msg.textContent = 'Sending order for ' + name + ' on WhatsApp...';
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateX(-50%) translateY(0)';
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(function() {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(20px)';
+  }, 3000);
+};
+
+// ── Back to Top ──
+(function() {
+  var btn = document.getElementById('backToTop');
+  if (!btn) return;
+  window.addEventListener('scroll', function() {
+    var show = window.scrollY > 400;
+    btn.style.opacity      = show ? '1' : '0';
+    btn.style.transform    = show ? 'translateY(0)' : 'translateY(10px)';
+    btn.style.pointerEvents= show ? 'auto' : 'none';
   });
 })();
 </script>
