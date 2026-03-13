@@ -1162,6 +1162,24 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
             <div class="stat-card-value" id="dashVideos">—</div>
             <div class="stat-card-sub">Published</div>
           </div>
+          <div class="stat-card red-top">
+            <div class="stat-card-label">Low Stock</div>
+            <div class="stat-card-value" id="dashLowStock" style="color:#e53935;">—</div>
+            <div class="stat-card-sub">Products below 3 units</div>
+          </div>
+        </div>
+
+        <div class="table-card" id="lowStockCard" style="border-top:3px solid #e53935;">
+          <div class="table-card-header">
+            <div class="table-card-title" style="color:#e53935;">&#9888; Low Stock Alert <span id="lowStockBadge" style="background:#fde8e8;color:#e53935;font-size:0.75rem;padding:2px 8px;border-radius:12px;margin-left:8px;"></span></div>
+            <a onclick="showPanel('products',document.querySelector('[data-panel=products]'))" style="font-size:0.8rem;color:var(--teal);cursor:pointer;text-decoration:underline;">Manage Products</a>
+          </div>
+          <table>
+            <thead><tr><th></th><th>Product</th><th>Category</th><th>Stock</th><th>Action</th></tr></thead>
+            <tbody id="dashLowStockRows">
+              <tr><td colspan="5" class="loading-row">Loading...</td></tr>
+            </tbody>
+          </table>
         </div>
 
         <div class="table-card">
@@ -1407,11 +1425,12 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
                 <th>Discount</th>
                 <th>Final Price (₹)</th>
                 <th>GST %</th>
+                <th>Rx</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody id="catalogTableBody">
-              <tr><td colspan="9" class="loading-row">Import your Excel file or add products manually.</td></tr>
+              <tr><td colspan="10" class="loading-row">Import your Excel file or add products manually.</td></tr>
             </tbody>
           </table>
           <!-- Pagination -->
@@ -1447,6 +1466,21 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
               <div class="field"><label>GST %</label><input type="number" id="catFGst" placeholder="5"></div>
               <div class="field"><label>Discount %</label><input type="number" id="catFDiscount" placeholder="0" min="0" max="100" oninput="catCalcDiscount()"></div>
               <div class="field"><label>Discounted Price (₹)</label><input type="number" id="catFDiscPrice" placeholder="Auto-calculated" step="0.01" oninput="catCalcDiscountReverse()"></div>
+              <div class="field"><label>Category</label>
+                <select id="catFCategory">
+                  <option value="">Select category</option>
+                  <option>OTC</option><option>Prescription</option><option>Vitamins</option>
+                  <option>Ayurvedic</option><option>Baby Care</option><option>Surgical</option><option>Cardiac</option>
+                </select>
+              </div>
+              <div class="field"><label>Prescription Required?</label>
+                <select id="catFRx">
+                  <option value="No">No – OTC (no prescription needed)</option>
+                  <option value="Yes">Yes – Rx Required</option>
+                </select>
+              </div>
+              <div class="field"><label>Product Icon / Emoji</label><input type="text" id="catFIcon" placeholder="💊" maxlength="4"></div>
+              <div class="field form-full"><label>Description</label><input type="text" id="catFDesc" placeholder="Short product description"></div>
             </div>
           </div>
           <div class="modal-footer">
@@ -1788,6 +1822,32 @@ function renderDashboard() {
   document.getElementById('dashRxTotal').textContent  = rxAll.length;
   document.getElementById('dashRxNew').textContent    = rxNew;
   document.getElementById('dashVideos').textContent   = loadVids().length;
+  var lowStockCount = products.filter(function(p){ return parseInt(p.stock||0) < 3; }).length;
+  var el = document.getElementById('dashLowStock'); if(el) el.textContent = lowStockCount;
+  var badge = document.getElementById('lowStockBadge'); if(badge) badge.textContent = lowStockCount + ' items';
+  var lsCard = document.getElementById('lowStockCard'); if(lsCard) lsCard.style.display = lowStockCount > 0 ? '' : 'none';
+  var lsRows = document.getElementById('dashLowStockRows');
+  if (lsRows) {
+    var lowItems = products.filter(function(p){ return parseInt(p.stock||0) < 3; });
+    if (!lowItems.length) {
+      lsRows.innerHTML = '<tr><td colspan="5" class="loading-row" style="color:#27ae60;">&#10003; All products have sufficient stock</td></tr>';
+    } else {
+      lsRows.innerHTML = lowItems.map(function(p) {
+        var idx = products.indexOf(p);
+        var stockVal = parseInt(p.stock||0);
+        var stockHtml = stockVal === 0
+          ? '<span style="color:#e53935;font-weight:700;background:#fde8e8;padding:2px 8px;border-radius:6px;">OUT OF STOCK</span>'
+          : '<span style="color:#e53935;font-weight:700;background:#fde8e8;padding:2px 8px;border-radius:6px;">&#9888; ' + stockVal + ' left</span>';
+        return '<tr style="background:#fff5f5;">' +
+          '<td style="font-size:1.1rem;">' + (p.icon||'💊') + '</td>' +
+          '<td><strong>' + (p.name||'') + '</strong></td>' +
+          '<td>' + (p.category||p.company||'Medicine') + '</td>' +
+          '<td>' + stockHtml + '</td>' +
+          '<td><button class="btn-sm" onclick="showPanel(\'products\',null); setTimeout(function(){ openEditProduct('+idx+'); },300);">✏️ Update Stock</button></td>' +
+          '</tr>';
+      }).join('');
+    }
+  }
 
   var recent = rxAll.slice(-5).reverse();
   var tbody  = document.getElementById('dashRxRows');
@@ -1810,7 +1870,7 @@ var adminProductFilter = '';
 function renderProductsAdmin(filter) {
   if (filter !== undefined) { adminProductFilter = filter; adminProductPage = 1; }
   var q    = (adminProductFilter || '').toLowerCase();
-  var list = q ? products.filter(function(p){ return (p.name+p.category).toLowerCase().indexOf(q) !== -1; }) : products;
+  var list = q ? products.filter(function(p){ return ((p.name||'')+(p.category||p.company||'')).toLowerCase().indexOf(q) !== -1; }) : products;
   var tbody = document.getElementById('productAdminTable');
   var pagBar = document.getElementById('productAdminPagination');
 
@@ -1828,12 +1888,12 @@ function renderProductsAdmin(filter) {
 
   tbody.innerHTML = slice.map(function(p) {
     var realIdx = products.indexOf(p);
-    return '<tr>' +
+    return '<tr' + (parseInt(p.stock||0) < 3 ? ' style="background:#fff5f5;"' : '') + '>' +
       '<td style="font-size:1.2rem;width:40px;">' + (p.icon||'💊') + '</td>' +
-      '<td><strong>' + p.name + '</strong></td>' +
-      '<td>' + p.category + '</td>' +
-      '<td>₹' + Number(p.price).toFixed(0) + '</td>' +
-      '<td>' + (p.stock||0) + '</td>' +
+      '<td><strong>' + (p.name||'') + '</strong></td>' +
+      '<td>' + (p.category||p.company||'Medicine') + '</td>' +
+      '<td>₹' + Number(p.price||p.mrp||0).toFixed(0) + '</td>' +
+      '<td>' + (parseInt(p.stock||0) < 3 ? '<span style="color:#e53935;font-weight:700;background:#fde8e8;padding:2px 8px;border-radius:6px;">&#9888; ' + (p.stock||0) + '</span>' : (p.stock||0)) + '</td>' +
       '<td><span class="tag ' + (p.rx==='Yes'?'tag-rx':'tag-no-rx') + '">' + (p.rx==='Yes'?'Rx Req.':'No Rx') + '</span></td>' +
       '<td><div class="act-btns">' +
         '<button class="btn-sm" onclick="openEditProduct('+realIdx+')">✏️ Edit</button>' +
@@ -1861,7 +1921,7 @@ function renderProductsAdmin(filter) {
 
 function adminProdGoPage(n) {
   var q = (adminProductFilter || '').toLowerCase();
-  var list = q ? products.filter(function(p){ return (p.name+p.category).toLowerCase().indexOf(q) !== -1; }) : products;
+  var list = q ? products.filter(function(p){ return ((p.name||'')+(p.category||p.company||'')).toLowerCase().indexOf(q) !== -1; }) : products;
   var totalPages = Math.max(1, Math.ceil(list.length / adminProductPageSize));
   adminProductPage = Math.max(1, Math.min(n, totalPages));
   renderProductsAdmin();
@@ -2397,7 +2457,7 @@ function renderCatalog() {
   var tbody = document.getElementById('catalogTableBody');
 
   if (!slice.length) {
-    tbody.innerHTML = '<tr><td colspan="9" class="loading-row">No products found.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" class="loading-row">No products found.</td></tr>';
     return;
   }
 
@@ -2409,7 +2469,7 @@ function renderCatalog() {
     var discHtml  = discPct > 0
       ? '<span class="tag tag-active" style="font-size:0.7rem;">-' + discPct + '%</span>'
       : '<span style="color:var(--text-muted);font-size:0.78rem;">—</span>';
-    return '<tr>' +
+    return '<tr' + (p.rx==='Yes' ? ' style="background:#fff5f7;"' : '') + '>' +
       '<td style="font-size:0.78rem;color:var(--text-muted);">' + (p.id||'—') + '</td>' +
       '<td><strong style="font-size:0.875rem;">' + p.name + '</strong>' + (p.pack?'<br><span style="font-size:0.72rem;color:var(--text-muted);">'+p.pack+'</span>':'') + '</td>' +
       '<td style="font-size:0.8rem;">' + (p.company||'—') + '</td>' +
@@ -2419,6 +2479,7 @@ function renderCatalog() {
       '<td>' + discHtml + '</td>' +
       '<td style="font-weight:700;color:var(--teal);">' + (finalPrice>0?'₹'+finalPrice.toFixed(0):'—') + '</td>' +
       '<td>' + (p.gst||0) + '%</td>' +
+      '<td>' + (p.rx==='Yes' ? '<span class="tag tag-rx" style="font-size:0.72rem;">📋 Rx</span>' : '<span class="tag tag-no-rx" style="font-size:0.72rem;">OTC</span>') + '</td>' +
       '<td><div class="act-btns">' +
         '<button class="btn-sm" onclick="openEditCatalogProduct(\'' + p.id + '\')">✏️ Edit</button>' +
         '<button class="btn-sm danger" onclick="deleteCatalogProduct(\'' + p.id + '\')">🗑</button>' +
@@ -2501,16 +2562,23 @@ function importCatalogFile(input) {
         var barcode = cell0.replace('.0','');
         if (!barcode || !name || name.length < 2) continue;
 
+        var prodName = name.toUpperCase();
+        var autoRx = (prodName.includes('TAB') || prodName.includes('CAP') || prodName.includes('INJ') ||
+                      prodName.includes('SYR') || prodName.includes('DROPS')) ? 'Yes' : 'No';
         imported.push({
-          id:      barcode,
-          name:    name,
-          company: currentCompany,
-          pack:    String(row[3]||'').trim(),
-          qty:     parseFloat(row[4]) || 0,
-          mrp:     parseFloat(row[5]) || 0,
-          sRate:   parseFloat(row[6]) || 0,
-          pRate:   parseFloat(row[7]) || 0,
-          gst:     parseFloat(row[11]) || 0
+          id:       barcode,
+          name:     name,
+          company:  currentCompany,
+          pack:     String(row[3]||'').trim(),
+          qty:      parseFloat(row[4]) || 0,
+          mrp:      parseFloat(row[5]) || 0,
+          sRate:    parseFloat(row[6]) || 0,
+          pRate:    parseFloat(row[7]) || 0,
+          gst:      parseFloat(row[11]) || 0,
+          rx:       'No',
+          category: 'Medicine',
+          icon:     '💊',
+          desc:     ''
         });
       }
       finishImport(imported, file.name);
@@ -2582,9 +2650,11 @@ function clearBulkDiscount() {
 function openAddCatalogProduct() {
   document.getElementById('catModalTitle').textContent = '➕ Add Product';
   document.getElementById('catEditId').value = '';
-  ['catFBarcode','catFCompany','catFName','catFPack','catFQty','catFMrp','catFSrate','catFPrate','catFGst'].forEach(function(id){
-    document.getElementById(id).value = '';
+  ['catFBarcode','catFCompany','catFName','catFPack','catFQty','catFMrp','catFSrate','catFPrate','catFGst','catFDiscount','catFDiscPrice','catFIcon','catFDesc'].forEach(function(id){
+    var el = document.getElementById(id); if(el) el.value = '';
   });
+  var catCatReset = document.getElementById('catFCategory'); if(catCatReset) catCatReset.value = '';
+  var catRxReset  = document.getElementById('catFRx');       if(catRxReset)  catRxReset.value  = 'No';
   document.getElementById('catProductModal').classList.add('open');
 }
 
@@ -2606,6 +2676,14 @@ function openEditCatalogProduct(id) {
   document.getElementById('catFDiscount').value = p.discountPct || 0;
   var mrp = parseFloat(p.mrp||0), disc = parseFloat(p.discountPct||0);
   document.getElementById('catFDiscPrice').value = (mrp>0&&disc>0) ? (mrp*(1-disc/100)).toFixed(2) : '';
+  var catCatEl = document.getElementById('catFCategory');
+  if (catCatEl) catCatEl.value = p.category || '';
+  var catRxEl = document.getElementById('catFRx');
+  if (catRxEl) catRxEl.value = p.rx || 'No';
+  var catIconEl = document.getElementById('catFIcon');
+  if (catIconEl) catIconEl.value = p.icon || '';
+  var catDescEl = document.getElementById('catFDesc');
+  if (catDescEl) catDescEl.value = p.desc || '';
   document.getElementById('catProductModal').classList.add('open');
 }
 
@@ -2628,7 +2706,11 @@ function saveCatProduct() {
     sRate:       parseFloat(document.getElementById('catFSrate').value) || 0,
     pRate:       parseFloat(document.getElementById('catFPrate').value) || 0,
     gst:         parseFloat(document.getElementById('catFGst').value) || 0,
-    discountPct: parseFloat(document.getElementById('catFDiscount').value) || 0
+    discountPct: parseFloat(document.getElementById('catFDiscount').value) || 0,
+    category:    (document.getElementById('catFCategory') ? document.getElementById('catFCategory').value : '') || 'Medicine',
+    rx:          document.getElementById('catFRx') ? document.getElementById('catFRx').value : 'No',
+    icon:        document.getElementById('catFIcon') ? document.getElementById('catFIcon').value.trim() || '💊' : '💊',
+    desc:        document.getElementById('catFDesc') ? document.getElementById('catFDesc').value.trim() : ''
   };
   if (editId) {
     var idx = catalogProducts.findIndex(function(x){ return x.id === editId; });
