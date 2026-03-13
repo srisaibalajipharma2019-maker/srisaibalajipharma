@@ -1210,15 +1210,17 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
             <div class="field"><label>Category *</label>
               <select id="pCat">
                 <option value="">Select category</option>
-                <option>OTC</option><option>Prescription</option><option>Vitamins</option>
-                <option>Ayurvedic</option><option>Baby Care</option><option>Surgical</option><option>Cardiac</option>
+                <option>Antibiotics</option><option>Cardiac</option><option>Diabetes</option>
+                <option>Neurological</option><option>Gastro</option><option>Respiratory</option>
+                <option>Vitamins</option><option>Ayurvedic</option><option>Baby Care</option>
+                <option>Surgical</option><option>Derma</option>
               </select>
             </div>
             <div class="field"><label>Base Price (₹) *</label><input type="number" id="pPrice" placeholder="0.00"/></div>
             <div class="field"><label>Stock Qty</label><input type="number" id="pStock" placeholder="0"/></div>
             <div class="field"><label>Emoji Icon</label><input type="text" id="pIcon" placeholder="💊"/></div>
             <div class="field"><label>Rx Required?</label>
-              <select id="pRx"><option value="No">No</option><option value="Yes">Yes</option></select>
+              <select id="pRx"><option value="Yes" selected>Yes – Rx Required</option><option value="No">No</option></select>
             </div>
             <div class="field form-full"><label>Description</label><input type="text" id="pDesc" placeholder="Brief product description"/></div>
             <div class="field form-full"><label>Image URL (optional)</label><input type="text" id="pImage" placeholder="https://…"/></div>
@@ -1469,8 +1471,10 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
               <div class="field"><label>Category</label>
                 <select id="catFCategory">
                   <option value="">Select category</option>
-                  <option>OTC</option><option>Prescription</option><option>Vitamins</option>
-                  <option>Ayurvedic</option><option>Baby Care</option><option>Surgical</option><option>Cardiac</option>
+                  <option>Antibiotics</option><option>Cardiac</option><option>Diabetes</option>
+                  <option>Neurological</option><option>Gastro</option><option>Respiratory</option>
+                  <option>Vitamins</option><option>Ayurvedic</option><option>Baby Care</option>
+                  <option>Surgical</option><option>Derma</option>
                 </select>
               </div>
               <div class="field"><label>Prescription Required?</label>
@@ -1654,12 +1658,12 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
       <div class="form-grid">
         <div class="field"><label>Name</label><input type="text" id="epName"/></div>
         <div class="field"><label>Category</label>
-          <select id="epCat"><option>OTC</option><option>Prescription</option><option>Vitamins</option><option>Ayurvedic</option><option>Baby Care</option><option>Surgical</option><option>Cardiac</option></select>
+          <select id="epCat"><option>Antibiotics</option><option>Cardiac</option><option>Diabetes</option><option>Neurological</option><option>Gastro</option><option>Respiratory</option><option>Vitamins</option><option>Ayurvedic</option><option>Baby Care</option><option>Surgical</option><option>Derma</option></select>
         </div>
         <div class="field"><label>Price (₹)</label><input type="number" id="epPrice"/></div>
         <div class="field"><label>Stock</label><input type="number" id="epStock"/></div>
         <div class="field"><label>Icon</label><input type="text" id="epIcon"/></div>
-        <div class="field"><label>Rx Required?</label><select id="epRx"><option value="No">No</option><option value="Yes">Yes</option></select></div>
+        <div class="field"><label>Rx Required?</label><select id="epRx"><option value="Yes" selected>Yes – Rx Required</option><option value="No">No</option></select></div>
         <div class="field form-full"><label>Description</label><input type="text" id="epDesc"/></div>
         <div class="field form-full"><label>Image URL</label><input type="text" id="epImage"/></div>
         <div class="field"><label>Qty 1 Label</label><input type="text" id="epQty1Label"/></div>
@@ -2406,8 +2410,29 @@ function catLoad() {
 
 function catSave(arr) { localStorage.setItem(CAT_KEY, JSON.stringify(arr)); }
 
+var CAT_MAP_ADMIN = {
+  'OTC': 'Gastro', 'Prescription': 'Antibiotics', 'Pain Relief': 'Gastro',
+  'Antibiotic': 'Antibiotics', 'Antibiotics': 'Antibiotics', 'Cardiac': 'Cardiac',
+  'Vitamins': 'Vitamins', 'Ayurvedic': 'Ayurvedic', 'Baby Care': 'Baby Care',
+  'Surgical': 'Surgical', 'Derma': 'Derma', 'Diabetes': 'Diabetes',
+  'Neurological': 'Neurological', 'Gastro': 'Gastro', 'Respiratory': 'Respiratory'
+};
+var VALID_CATS_ADMIN = ['Antibiotics','Cardiac','Diabetes','Neurological','Gastro','Respiratory','Vitamins','Ayurvedic','Baby Care','Surgical','Derma'];
+
+function migrateAdminProducts(list) {
+  var changed = false;
+  list.forEach(function(p) {
+    if (p.rx !== 'Yes') { p.rx = 'Yes'; changed = true; }
+    var mapped = CAT_MAP_ADMIN[p.category] || (VALID_CATS_ADMIN.indexOf(p.category) !== -1 ? p.category : null);
+    if (mapped && p.category !== mapped) { p.category = mapped; changed = true; }
+  });
+  return changed;
+}
+
 function initCatalog() {
   catalogProducts = catLoad();
+  var didChange = migrateAdminProducts(catalogProducts);
+  if (didChange) catSave(catalogProducts);
   renderCatalog();
   updateCatalogBadge();
   populateCompanyFilter();
