@@ -268,13 +268,17 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   </div>
   <div class="filter-btns" id="filterBtns">
     <button class="filter-btn active" onclick="setCategory('All',this)">All</button>
-    <button class="filter-btn" onclick="setCategory('OTC',this)">OTC</button>
-    <button class="filter-btn" onclick="setCategory('Prescription',this)">Prescription</button>
-    <button class="filter-btn" onclick="setCategory('Vitamins',this)">Vitamins</button>
-    <button class="filter-btn" onclick="setCategory('Ayurvedic',this)">Ayurvedic</button>
-    <button class="filter-btn" onclick="setCategory('Baby Care',this)">Baby Care</button>
-    <button class="filter-btn" onclick="setCategory('Surgical',this)">Surgical</button>
-    <button class="filter-btn" onclick="setCategory('Cardiac',this)">Cardiac</button>
+    <button class="filter-btn" onclick="setCategory('Antibiotics',this)">🦠 Antibiotics</button>
+    <button class="filter-btn" onclick="setCategory('Cardiac',this)">🫀 Cardiac</button>
+    <button class="filter-btn" onclick="setCategory('Diabetes',this)">🩸 Diabetes</button>
+    <button class="filter-btn" onclick="setCategory('Neurological',this)">🧠 Neurological</button>
+    <button class="filter-btn" onclick="setCategory('Gastro',this)">🫃 Gastro</button>
+    <button class="filter-btn" onclick="setCategory('Respiratory',this)">🫁 Respiratory</button>
+    <button class="filter-btn" onclick="setCategory('Vitamins',this)">🌟 Vitamins</button>
+    <button class="filter-btn" onclick="setCategory('Ayurvedic',this)">🌿 Ayurvedic</button>
+    <button class="filter-btn" onclick="setCategory('Baby Care',this)">🍼 Baby Care</button>
+    <button class="filter-btn" onclick="setCategory('Surgical',this)">🩹 Surgical</button>
+    <button class="filter-btn" onclick="setCategory('Derma',this)">✨ Derma</button>
   </div>
   <span class="result-count" id="resultCount"></span>
 </div>
@@ -297,19 +301,90 @@ var currentPage    = 1;
 var filteredList   = [];
 
 var defaultProducts = [
-  { name:'Paracetamol 500mg',    category:'OTC',          price:18,  stock:200, desc:'Fever and pain relief tablet',              icon:'💊', rx:'No',  qty1Label:'Per Strip (15 tabs)',  qty1Price:18,  qty2Label:'Per Strip (30 tabs)', qty2Price:32,  qty3Label:'Per Pack (100 tabs)', qty3Price:95,  discountPrice:'' },
-  { name:'Amoxicillin 250mg',    category:'Prescription', price:85,  stock:120, desc:'Antibiotic for bacterial infections',        icon:'💉', rx:'Yes', qty1Label:'Per Strip (10 caps)',  qty1Price:85,  qty2Label:'Per Strip (20 caps)', qty2Price:155, qty3Label:'',                   qty3Price:'',  discountPrice:72  },
-  { name:'Cardiac Aspirin 75mg', category:'Cardiac',      price:45,  stock:300, desc:'Low-dose aspirin for heart health',          icon:'🫀', rx:'No',  qty1Label:'Per Strip (14 tabs)',  qty1Price:45,  qty2Label:'Per Strip (28 tabs)', qty2Price:82,  qty3Label:'Per Box (100 tabs)',  qty3Price:275, discountPrice:'' },
-  { name:'Vitamin D3 1000 IU',   category:'Vitamins',     price:120, stock:180, desc:'Bone strength and immunity support',         icon:'🌟', rx:'No',  qty1Label:'Per Strip (15 caps)',  qty1Price:120, qty2Label:'Per Strip (30 caps)', qty2Price:225, qty3Label:'Per Bottle (60 caps)', qty3Price:420, discountPrice:99  },
-  { name:'Ashwagandha Capsules', category:'Ayurvedic',    price:220, stock:90,  desc:'Stress relief and vitality booster',         icon:'🌿', rx:'No',  qty1Label:'Per Bottle (30 caps)', qty1Price:220, qty2Label:'Per Bottle (60 caps)', qty2Price:399, qty3Label:'',                   qty3Price:'',  discountPrice:185 },
-  { name:'Baby Gripe Water',     category:'Baby Care',    price:65,  stock:150, desc:'Colic and gas relief for infants',           icon:'🍼', rx:'No',  qty1Label:'Per Bottle (100ml)',   qty1Price:65,  qty2Label:'Per Bottle (200ml)',  qty2Price:115, qty3Label:'',                   qty3Price:'',  discountPrice:'' },
-  { name:'Surgical Cotton 100g', category:'Surgical',     price:35,  stock:400, desc:'Sterile absorbent cotton for wounds',        icon:'🩹', rx:'No',  qty1Label:'Per Pack (100g)',      qty1Price:35,  qty2Label:'Per Pack (500g)',     qty2Price:155, qty3Label:'',                   qty3Price:'',  discountPrice:'' },
-  { name:'Metformin 500mg',      category:'Prescription', price:55,  stock:250, desc:'Type 2 diabetes management tablet',         icon:'💊', rx:'Yes', qty1Label:'Per Strip (20 tabs)',  qty1Price:55,  qty2Label:'Per Strip (30 tabs)', qty2Price:78,  qty3Label:'Per Pack (100 tabs)', qty3Price:240, discountPrice:45  },
-  { name:'Dolo 650',             category:'OTC',          price:32,  stock:100, desc:'Fever and mild pain relief tablet',          icon:'💊', rx:'No',  qty1Label:'Per Strip (15 tabs)',  qty1Price:32,  qty2Label:'Per Strip (30 tabs)', qty2Price:58,  qty3Label:'Per Pack (100 tabs)', qty3Price:175, discountPrice:'' }
+  /* ── ANTIBIOTICS ── */
+  { name:'Amoxicillin 250mg',       category:'Antibiotics',  price:85,  stock:120, desc:'Antibiotic for bacterial infections',           icon:'💉', rx:'Yes', qty1Label:'Per Strip (10 caps)',  qty1Price:85,  qty2Label:'Per Strip (20 caps)', qty2Price:155, qty3Label:'',                    qty3Price:'',  discountPrice:72  },
+  { name:'Azithromycin 500mg',      category:'Antibiotics',  price:110, stock:80,  desc:'Broad-spectrum antibiotic tablet',              icon:'💊', rx:'Yes', qty1Label:'Per Strip (3 tabs)',   qty1Price:110, qty2Label:'Per Strip (6 tabs)',  qty2Price:198, qty3Label:'',                    qty3Price:'',  discountPrice:95  },
+  { name:'Ciprofloxacin 500mg',     category:'Antibiotics',  price:95,  stock:150, desc:'Antibiotic for UTI and infections',             icon:'💊', rx:'Yes', qty1Label:'Per Strip (10 tabs)',  qty1Price:95,  qty2Label:'Per Strip (20 tabs)', qty2Price:175, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  { name:'Doxycycline 100mg',       category:'Antibiotics',  price:72,  stock:90,  desc:'Antibiotic for respiratory infections',         icon:'💊', rx:'Yes', qty1Label:'Per Strip (10 caps)',  qty1Price:72,  qty2Label:'Per Strip (20 caps)', qty2Price:135, qty3Label:'',                    qty3Price:'',  discountPrice:60  },
+  /* ── CARDIAC ── */
+  { name:'Cardiac Aspirin 75mg',    category:'Cardiac',      price:45,  stock:300, desc:'Low-dose aspirin for heart health',             icon:'🫀', rx:'Yes', qty1Label:'Per Strip (14 tabs)',  qty1Price:45,  qty2Label:'Per Strip (28 tabs)', qty2Price:82,  qty3Label:'Per Box (100 tabs)',   qty3Price:275, discountPrice:''  },
+  { name:'Atorvastatin 10mg',       category:'Cardiac',      price:98,  stock:200, desc:'Cholesterol-lowering statin tablet',            icon:'💊', rx:'Yes', qty1Label:'Per Strip (10 tabs)',  qty1Price:98,  qty2Label:'Per Strip (30 tabs)', qty2Price:275, qty3Label:'',                    qty3Price:'',  discountPrice:82  },
+  { name:'Amlodipine 5mg',          category:'Cardiac',      price:62,  stock:180, desc:'Calcium channel blocker for hypertension',      icon:'🫀', rx:'Yes', qty1Label:'Per Strip (10 tabs)',  qty1Price:62,  qty2Label:'Per Strip (30 tabs)', qty2Price:175, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  { name:'Metoprolol 25mg',         category:'Cardiac',      price:78,  stock:120, desc:'Beta blocker for blood pressure & angina',      icon:'💊', rx:'Yes', qty1Label:'Per Strip (15 tabs)',  qty1Price:78,  qty2Label:'Per Strip (30 tabs)', qty2Price:145, qty3Label:'',                    qty3Price:'',  discountPrice:65  },
+  /* ── DIABETES ── */
+  { name:'Metformin 500mg',         category:'Diabetes',     price:55,  stock:250, desc:'Type 2 diabetes management tablet',             icon:'💊', rx:'Yes', qty1Label:'Per Strip (20 tabs)',  qty1Price:55,  qty2Label:'Per Strip (30 tabs)', qty2Price:78,  qty3Label:'Per Pack (100 tabs)',  qty3Price:240, discountPrice:45  },
+  { name:'Glimepiride 1mg',         category:'Diabetes',     price:88,  stock:160, desc:'Sulfonylurea for blood sugar control',           icon:'💊', rx:'Yes', qty1Label:'Per Strip (15 tabs)',  qty1Price:88,  qty2Label:'Per Strip (30 tabs)', qty2Price:162, qty3Label:'',                    qty3Price:'',  discountPrice:72  },
+  { name:'Sitagliptin 50mg',        category:'Diabetes',     price:320, stock:80,  desc:'DPP-4 inhibitor for type 2 diabetes',           icon:'💊', rx:'Yes', qty1Label:'Per Strip (14 tabs)',  qty1Price:320, qty2Label:'Per Strip (28 tabs)', qty2Price:610, qty3Label:'',                    qty3Price:'',  discountPrice:285 },
+  /* ── NEUROLOGICAL ── */
+  { name:'Gabapentin 300mg',        category:'Neurological', price:145, stock:100, desc:'Nerve pain and epilepsy treatment',             icon:'🧠', rx:'Yes', qty1Label:'Per Strip (10 caps)',  qty1Price:145, qty2Label:'Per Strip (30 caps)', qty2Price:420, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  { name:'Pregabalin 75mg',         category:'Neurological', price:185, stock:90,  desc:'Neuropathic pain and anxiety management',       icon:'💊', rx:'Yes', qty1Label:'Per Strip (10 caps)',  qty1Price:185, qty2Label:'Per Strip (30 caps)', qty2Price:540, qty3Label:'',                    qty3Price:'',  discountPrice:155 },
+  { name:'Levetiracetam 500mg',     category:'Neurological', price:260, stock:70,  desc:'Anti-epileptic medication',                     icon:'🧠', rx:'Yes', qty1Label:'Per Strip (10 tabs)',  qty1Price:260, qty2Label:'Per Strip (30 tabs)', qty2Price:750, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  /* ── GASTRO ── */
+  { name:'Pantoprazole 40mg',       category:'Gastro',       price:72,  stock:220, desc:'Proton pump inhibitor for acidity & ulcers',    icon:'🫃', rx:'Yes', qty1Label:'Per Strip (10 tabs)',  qty1Price:72,  qty2Label:'Per Strip (30 tabs)', qty2Price:205, qty3Label:'',                    qty3Price:'',  discountPrice:58  },
+  { name:'Ondansetron 4mg',         category:'Gastro',       price:48,  stock:180, desc:'Anti-nausea and vomiting tablet',               icon:'💊', rx:'Yes', qty1Label:'Per Strip (10 tabs)',  qty1Price:48,  qty2Label:'Per Strip (30 tabs)', qty2Price:135, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  { name:'Domperidone 10mg',        category:'Gastro',       price:38,  stock:200, desc:'Motility agent for nausea and bloating',        icon:'💊', rx:'Yes', qty1Label:'Per Strip (10 tabs)',  qty1Price:38,  qty2Label:'Per Strip (30 tabs)', qty2Price:108, qty3Label:'',                    qty3Price:'',  discountPrice:32  },
+  /* ── RESPIRATORY ── */
+  { name:'Salbutamol 4mg',          category:'Respiratory',  price:42,  stock:150, desc:'Bronchodilator for asthma & breathing',        icon:'🫁', rx:'Yes', qty1Label:'Per Strip (10 tabs)',  qty1Price:42,  qty2Label:'Per Strip (30 tabs)', qty2Price:118, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  { name:'Montelukast 10mg',        category:'Respiratory',  price:128, stock:110, desc:'Leukotriene blocker for asthma & allergies',    icon:'💊', rx:'Yes', qty1Label:'Per Strip (10 tabs)',  qty1Price:128, qty2Label:'Per Strip (30 tabs)', qty2Price:368, qty3Label:'',                    qty3Price:'',  discountPrice:108 },
+  { name:'Budesonide Inhaler',      category:'Respiratory',  price:380, stock:60,  desc:'Corticosteroid inhaler for asthma control',     icon:'🫁', rx:'Yes', qty1Label:'Per Inhaler (200 doses)', qty1Price:380, qty2Label:'',                qty2Price:'',  qty3Label:'',                    qty3Price:'',  discountPrice:320 },
+  /* ── VITAMINS ── */
+  { name:'Vitamin D3 1000 IU',      category:'Vitamins',     price:120, stock:180, desc:'Bone strength and immunity support',            icon:'🌟', rx:'Yes', qty1Label:'Per Strip (15 caps)',  qty1Price:120, qty2Label:'Per Strip (30 caps)', qty2Price:225, qty3Label:'Per Bottle (60 caps)', qty3Price:420, discountPrice:99  },
+  { name:'Vitamin B12 1500mcg',     category:'Vitamins',     price:145, stock:140, desc:'Nerve health and energy booster',               icon:'💊', rx:'Yes', qty1Label:'Per Strip (10 tabs)',  qty1Price:145, qty2Label:'Per Strip (30 tabs)', qty2Price:420, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  { name:'Calcium + D3 Tablet',     category:'Vitamins',     price:165, stock:120, desc:'Bone and joint strength supplement',            icon:'🦴', rx:'Yes', qty1Label:'Per Strip (15 tabs)',  qty1Price:165, qty2Label:'Per Strip (30 tabs)', qty2Price:310, qty3Label:'',                    qty3Price:'',  discountPrice:140 },
+  { name:'Iron + Folic Acid',       category:'Vitamins',     price:88,  stock:200, desc:'Anaemia prevention and treatment',              icon:'🌟', rx:'Yes', qty1Label:'Per Strip (30 tabs)',  qty1Price:88,  qty2Label:'Per Strip (60 tabs)', qty2Price:165, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  /* ── AYURVEDIC ── */
+  { name:'Ashwagandha Capsules',    category:'Ayurvedic',    price:220, stock:90,  desc:'Stress relief and vitality booster',            icon:'🌿', rx:'Yes', qty1Label:'Per Bottle (30 caps)', qty1Price:220, qty2Label:'Per Bottle (60 caps)', qty2Price:399, qty3Label:'',                    qty3Price:'',  discountPrice:185 },
+  { name:'Triphala Churna',         category:'Ayurvedic',    price:95,  stock:130, desc:'Digestive health and detox powder',             icon:'🌿', rx:'Yes', qty1Label:'Per Pack (100g)',      qty1Price:95,  qty2Label:'Per Pack (200g)',     qty2Price:175, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  { name:'Brahmi Tablets',          category:'Ayurvedic',    price:175, stock:80,  desc:'Memory and cognitive function support',         icon:'🌿', rx:'Yes', qty1Label:'Per Bottle (60 tabs)', qty1Price:175, qty2Label:'Per Bottle (120 tabs)', qty2Price:325, qty3Label:'',                    qty3Price:'',  discountPrice:148 },
+  /* ── BABY CARE ── */
+  { name:'Baby Gripe Water',        category:'Baby Care',    price:65,  stock:150, desc:'Colic and gas relief for infants',              icon:'🍼', rx:'Yes', qty1Label:'Per Bottle (100ml)',   qty1Price:65,  qty2Label:'Per Bottle (200ml)',  qty2Price:115, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  { name:'Paediatric Paracetamol Syrup', category:'Baby Care', price:48, stock:120, desc:'Fever and pain relief syrup for children',    icon:'🍼', rx:'Yes', qty1Label:'Per Bottle (60ml)',    qty1Price:48,  qty2Label:'Per Bottle (120ml)', qty2Price:88,  qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  { name:'Zinc Syrup (Paed.)',      category:'Baby Care',    price:72,  stock:100, desc:'Zinc supplement for child immunity & growth',   icon:'🍼', rx:'Yes', qty1Label:'Per Bottle (60ml)',    qty1Price:72,  qty2Label:'Per Bottle (120ml)', qty2Price:130, qty3Label:'',                    qty3Price:'',  discountPrice:60  },
+  /* ── SURGICAL ── */
+  { name:'Surgical Cotton 100g',    category:'Surgical',     price:35,  stock:400, desc:'Sterile absorbent cotton for wounds',           icon:'🩹', rx:'Yes', qty1Label:'Per Pack (100g)',      qty1Price:35,  qty2Label:'Per Pack (500g)',     qty2Price:155, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  { name:'Crepe Bandage 10cm',      category:'Surgical',     price:55,  stock:300, desc:'Elastic support bandage for sprains',           icon:'🩹', rx:'Yes', qty1Label:'Per Roll',             qty1Price:55,  qty2Label:'Pack of 5',           qty2Price:250, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  { name:'Disposable Gloves (L)',   category:'Surgical',     price:120, stock:200, desc:'Latex-free disposable examination gloves',      icon:'🧤', rx:'Yes', qty1Label:'Per Box (100 pcs)',    qty1Price:120, qty2Label:'',                   qty2Price:'',  qty3Label:'',                    qty3Price:'',  discountPrice:98  },
+  /* ── DERMA ── */
+  { name:'Betamethasone Cream 0.1%',category:'Derma',        price:85,  stock:110, desc:'Corticosteroid cream for skin inflammation',    icon:'✨', rx:'Yes', qty1Label:'Per Tube (20g)',       qty1Price:85,  qty2Label:'Per Tube (30g)',      qty2Price:118, qty3Label:'',                    qty3Price:'',  discountPrice:''  },
+  { name:'Clotrimazole Cream 1%',   category:'Derma',        price:68,  stock:140, desc:'Antifungal cream for skin infections',          icon:'✨', rx:'Yes', qty1Label:'Per Tube (20g)',       qty1Price:68,  qty2Label:'Per Tube (30g)',      qty2Price:95,  qty3Label:'',                    qty3Price:'',  discountPrice:55  },
+  { name:'Mupirocin Ointment 2%',   category:'Derma',        price:95,  stock:90,  desc:'Antibiotic ointment for skin infections',       icon:'✨', rx:'Yes', qty1Label:'Per Tube (5g)',        qty1Price:95,  qty2Label:'Per Tube (15g)',      qty2Price:255, qty3Label:'',                    qty3Price:'',  discountPrice:''  }
 ];
 
 var activeCategory = 'All';
 var products = [];
+
+/* ── Category migration map: old → new ── */
+var CAT_MAP = {
+  'OTC':          'Gastro',
+  'Prescription': 'Antibiotics',
+  'Pain Relief':  'Gastro',
+  'Antibiotic':   'Antibiotics',
+  'Antibiotics':  'Antibiotics',
+  'Cardiac':      'Cardiac',
+  'Vitamins':     'Vitamins',
+  'Ayurvedic':    'Ayurvedic',
+  'Baby Care':    'Baby Care',
+  'Surgical':     'Surgical',
+  'Derma':        'Derma',
+  'Diabetes':     'Diabetes',
+  'Neurological': 'Neurological',
+  'Gastro':       'Gastro',
+  'Respiratory':  'Respiratory'
+};
+
+var VALID_CATS = ['Antibiotics','Cardiac','Diabetes','Neurological','Gastro','Respiratory','Vitamins','Ayurvedic','Baby Care','Surgical','Derma'];
+
+function migrateProducts(list) {
+  var changed = false;
+  list.forEach(function(p) {
+    /* Force all to Rx Required */
+    if (p.rx !== 'Yes') { p.rx = 'Yes'; changed = true; }
+    /* Remap old/unknown categories */
+    var mapped = CAT_MAP[p.category] || (VALID_CATS.indexOf(p.category) !== -1 ? p.category : 'Antibiotics');
+    if (p.category !== mapped) { p.category = mapped; changed = true; }
+  });
+  return changed;
+}
 
 function loadProducts() {
   try {
@@ -319,6 +394,11 @@ function loadProducts() {
     if (!Array.isArray(products) || !products.length) products = defaultProducts;
   } catch(e) {
     products = defaultProducts;
+  }
+  /* Run migration and persist if anything changed */
+  var didChange = migrateProducts(products);
+  if (didChange) {
+    try { localStorage.setItem('ssb_catalog', JSON.stringify(products)); } catch(e) {}
   }
   applyFilters();
 }
