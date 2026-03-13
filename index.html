@@ -815,6 +815,23 @@
   .btn-admin:hover { background: var(--navy); }
   .product-count { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; font-weight: 500; }
   .product-card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); transition: transform 0.25s, box-shadow 0.25s; display: flex; flex-direction: column; }
+
+/* ── Round 1: Product Card Enhancements ── */
+.stock-badge { display:inline-flex; align-items:center; gap:4px; font-size:0.68rem; font-weight:700; padding:2px 8px; border-radius:20px; letter-spacing:0.4px; }
+.stock-in    { background:rgba(39,174,96,0.10); color:#1e8449; border:1px solid rgba(39,174,96,0.2); }
+.stock-low   { background:rgba(243,156,18,0.10); color:#b7770d; border:1px solid rgba(243,156,18,0.25); }
+.stock-out   { background:rgba(192,57,43,0.08); color:#c0392b; border:1px solid rgba(192,57,43,0.2); }
+.brand-line  { font-size:0.72rem; color:#7f8c8d; margin-top:2px; display:flex; align-items:center; gap:4px; }
+.generic-flag{ display:inline-flex; align-items:center; gap:3px; font-size:0.68rem; font-weight:700; background:rgba(52,152,219,0.09); color:#1a6fa8; border:1px solid rgba(52,152,219,0.2); border-radius:20px; padding:2px 7px; margin-top:3px; cursor:default; }
+.expiry-warn { font-size:0.68rem; font-weight:600; padding:2px 7px; border-radius:20px; margin-top:3px; display:inline-block; }
+.expiry-ok   { background:rgba(39,174,96,0.08); color:#1e8449; }
+.expiry-soon { background:rgba(243,156,18,0.12); color:#b7770d; }
+.expiry-exp  { background:rgba(192,57,43,0.10); color:#c0392b; }
+.dosage-toggle { background:none; border:none; font-size:0.72rem; color:var(--teal); cursor:pointer; padding:3px 0; font-family:inherit; font-weight:600; display:flex; align-items:center; gap:3px; margin-top:4px; }
+.dosage-toggle:hover { text-decoration:underline; }
+.dosage-box  { font-size:0.75rem; color:var(--text-muted); background:rgba(0,137,123,0.05); border-left:3px solid var(--teal); border-radius:0 6px 6px 0; padding:7px 10px; margin-top:6px; line-height:1.5; display:none; }
+.dosage-box.open { display:block; }
+
   .product-card:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(0,137,123,0.1); }
   .product-card.rx-card { border-color: rgba(192,57,43,0.25); border-top: 3px solid #c0392b; }
   .product-card.rx-card:hover { box-shadow: 0 10px 32px rgba(192,57,43,0.12); }
@@ -2658,18 +2675,7 @@
       <input type="text" id="searchInput" placeholder="Search by product name or category..." oninput="filterProducts()">
     </div>
     <div class="filter-tabs" id="filterTabs">
-      <button class="filter-btn active" onclick="filterByCategory('All')">All</button>
-      <button class="filter-btn" onclick="filterByCategory('Antibiotics')">🦠 Antibiotics</button>
-      <button class="filter-btn" onclick="filterByCategory('Cardiac')">🫀 Cardiac</button>
-      <button class="filter-btn" onclick="filterByCategory('Diabetes')">🩸 Diabetes</button>
-      <button class="filter-btn" onclick="filterByCategory('Neurological')">🧠 Neurological</button>
-      <button class="filter-btn" onclick="filterByCategory('Gastro')">🫃 Gastro</button>
-      <button class="filter-btn" onclick="filterByCategory('Respiratory')">🫁 Respiratory</button>
-      <button class="filter-btn" onclick="filterByCategory('Vitamins')">🌟 Vitamins</button>
-      <button class="filter-btn" onclick="filterByCategory('Ayurvedic')">🌿 Ayurvedic</button>
-      <button class="filter-btn" onclick="filterByCategory('Baby Care')">🍼 Baby Care</button>
-      <button class="filter-btn" onclick="filterByCategory('Surgical')">🩹 Surgical</button>
-      <button class="filter-btn" onclick="filterByCategory('Derma')">✨ Derma</button>
+      <!-- Dynamically populated from localStorage ssb_categories -->
     </div>
 
   </div>
@@ -3648,7 +3654,7 @@
     'Surgical': 'Surgical', 'Derma': 'Derma', 'Diabetes': 'Diabetes',
     'Neurological': 'Neurological', 'Gastro': 'Gastro', 'Respiratory': 'Respiratory'
   };
-  const VALID_CATS_IDX = ['Antibiotics','Cardiac','Diabetes','Neurological','Gastro','Respiratory','Vitamins','Ayurvedic','Baby Care','Surgical','Derma'];
+  const VALID_CATS_IDX = ['Antibiotics','Cardiac','Diabetes','Neurological','Gastro','Respiratory','Vitamins','Ayurvedic','Baby Care','Surgical','Derma','Oncology','Orthopaedic','Eye Care','ENT','Hormones','Psychiatry','Anti Coagulant','Nutrition'];
 
   function migrateIndexProducts(list) {
     let changed = false;
@@ -3687,6 +3693,7 @@
     if (migrateIndexProducts(products)) {
       try { localStorage.setItem('ssb_catalog', JSON.stringify(products)); } catch(e) {}
     }
+    buildFilterTabs();
     mainCurrentPage = 1; mainFilteredList = getFilteredProducts(); renderProductsPage();
     renderServices();
   }
@@ -3803,13 +3810,20 @@
       var waMsg = encodeURIComponent(waLines.join('\n'));
       var waUrl = 'https://wa.me/919963800555?text=' + waMsg;
 
+      var uid = p.name.replace(/[^a-z0-9]/gi,'_') + '_' + Math.random().toString(36).slice(2,6);
       return '<div class="product-card' + (p.rx === 'Yes' ? ' rx-card' : '') + '">' +
         (p.rx === 'Yes' ? '<div class="rx-card-banner">📋 Prescription Required</div>' : '') +
         imgHtml +
         '<div class="product-info">' +
-          '<div class="product-cat">' + category + '</div>' +
+          '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;">' +
+            '<div class="product-cat">' + category + '</div>' +
+            stockBadge(p) +
+          '</div>' +
           '<div class="product-name">' + p.name + '</div>' +
+          brandLine(p) +
+          expiryBadge(p) +
           '<div class="product-desc">' + (p.desc || p.company || '') + '</div>' +
+          dosageSection(p, uid) +
           '<div class="product-pricing">' + pricingHtml + '</div>' +
         '</div>' +
         '<div class="product-footer">' +
@@ -4579,6 +4593,69 @@
 
   document.getElementById('wishesAdminModal').addEventListener('click', function(e) { if (e.target===this) closeWishesAdmin(); });
   document.getElementById('editWishModal').addEventListener('click', function(e) { if (e.target===this) closeEditWish(); });
+
+
+// ── Round 1 helpers ──
+function stockBadge(p) {
+  var qty = parseInt(p.stock || p.qty || 0);
+  if (qty <= 0)  return '<span class="stock-badge stock-out">⛔ Out of Stock</span>';
+  if (qty <= 20) return '<span class="stock-badge stock-low">⚠️ Low Stock (' + qty + ')</span>';
+  return '<span class="stock-badge stock-in">✅ In Stock</span>';
+}
+function expiryBadge(p) {
+  if (!p.expiry) return '';
+  var d = new Date(p.expiry), now = new Date();
+  var diff = Math.floor((d - now) / (1000*60*60*24));
+  if (diff < 0)   return '<span class="expiry-warn expiry-exp">⚠️ Expired</span>';
+  if (diff <= 90) return '<span class="expiry-warn expiry-soon">⏳ Exp: ' + p.expiry + '</span>';
+  return '<span class="expiry-warn expiry-ok">📅 Exp: ' + p.expiry + '</span>';
+}
+function brandLine(p) {
+  var parts = [];
+  if (p.brand || p.manufacturer) parts.push('🏭 ' + (p.brand || p.manufacturer));
+  if (p.generic) parts.push('<span class="generic-flag">💊 Generic Available</span>');
+  return parts.length ? '<div class="brand-line">' + parts.join(' &nbsp;') + '</div>' : '';
+}
+function dosageSection(p, uid) {
+  if (!p.dosage) return '';
+  return '<button class="dosage-toggle" onclick="toggleDosage(\'' + uid + '\')" aria-expanded="false">ℹ️ Dosage &amp; Usage <span id="darr-' + uid + '">▼</span></button>' +
+         '<div class="dosage-box" id="dos-' + uid + '">' + p.dosage + '</div>';
+}
+function toggleDosage(uid) {
+  var box  = document.getElementById('dos-'  + uid);
+  var arr  = document.getElementById('darr-' + uid);
+  if (!box) return;
+  var open = box.classList.toggle('open');
+  if (arr) arr.textContent = open ? '▲' : '▼';
+}
+
+  // ====== DYNAMIC FILTER TABS ======
+  var DEFAULT_CATS_INDEX = [
+    {name:'Antibiotics',emoji:'🦠'},{name:'Cardiac',emoji:'🫀'},{name:'Diabetes',emoji:'🩸'},
+    {name:'Neurological',emoji:'🧠'},{name:'Gastro',emoji:'🫃'},{name:'Respiratory',emoji:'🫁'},
+    {name:'Vitamins',emoji:'🌟'},{name:'Ayurvedic',emoji:'🌿'},{name:'Baby Care',emoji:'🍼'},
+    {name:'Surgical',emoji:'🩹'},{name:'Derma',emoji:'✨'},{name:'Oncology',emoji:'🎗️'},
+    {name:'Orthopaedic',emoji:'🦴'},{name:'Eye Care',emoji:'👁️'},{name:'ENT',emoji:'👂'},
+    {name:'Hormones',emoji:'⚗️'},{name:'Psychiatry',emoji:'🧬'},{name:'Anti Coagulant',emoji:'🩸'},
+    {name:'Nutrition',emoji:'🥗'}
+  ];
+
+  function buildFilterTabs() {
+    var tabs = document.getElementById('filterTabs');
+    if (!tabs) return;
+    var cats;
+    try {
+      var d = localStorage.getItem('ssb_categories');
+      cats = d ? JSON.parse(d) : DEFAULT_CATS_INDEX;
+      if (!Array.isArray(cats) || !cats.length) cats = DEFAULT_CATS_INDEX;
+    } catch(e) { cats = DEFAULT_CATS_INDEX; }
+
+    var html = '<button class="filter-btn active" onclick="filterByCategory(\'All\')">All</button>';
+    cats.forEach(function(c) {
+      html += '<button class="filter-btn" onclick="filterByCategory(\'' + c.name.replace(/'/g,"\\'") + '\')">' + c.emoji + ' ' + c.name + '</button>';
+    });
+    tabs.innerHTML = html;
+  }
 
   // ====== START ======
   loadWishes();
