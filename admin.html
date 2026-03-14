@@ -1236,7 +1236,23 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
             </div>
             <div class="field form-full"><label>Description</label><input type="text" id="pDesc" placeholder="Brief product description"/></div>
             <div class="field form-full"><label>Dosage &amp; Usage Instructions</label><input type="text" id="pDosage" placeholder="e.g. 1 tablet twice daily after meals. Do not exceed prescribed dose."/></div>
-            <div class="field form-full"><label>Image URL (optional)</label><input type="text" id="pImage" placeholder="https://…"/></div>
+            <div class="field form-full">
+              <label>Product Image</label>
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <label for="pImageUpload" style="display:inline-flex;align-items:center;gap:7px;background:var(--teal);color:white;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;transition:opacity 0.15s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                    📁 Upload from Device
+                    <input type="file" id="pImageUpload" accept="image/*" style="display:none;" onchange="handleProductImageUpload(this,'pImage','pImagePreview')"/>
+                  </label>
+                  <span style="font-size:0.78rem;color:var(--text-muted);">— or paste URL below —</span>
+                </div>
+                <input type="text" id="pImage" placeholder="https://… (image URL)" oninput="updateImagePreview(this.value,'pImagePreview')"/>
+                <div id="pImagePreview" style="display:none;margin-top:4px;">
+                  <img id="pImagePreviewImg" src="" alt="Preview" style="height:90px;border-radius:8px;border:1px solid #dde5ed;object-fit:contain;background:#f8fafc;padding:4px;"/>
+                  <button type="button" onclick="clearProductImage('pImage','pImagePreview')" style="display:block;margin-top:4px;background:transparent;border:1px solid rgba(192,57,43,0.3);border-radius:6px;color:#c0392b;font-size:0.75rem;padding:3px 10px;cursor:pointer;">✕ Remove</button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
@@ -1341,21 +1357,82 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
           <div class="panel-title">Manage <em>Videos</em></div>
         </div>
 
-        <!-- Add Video Form -->
+        <!-- Add Video Form - Tabbed -->
         <div class="form-card">
           <h3>➕ Add Video</h3>
-          <div class="form-grid">
-            <div class="field"><label>YouTube / Vimeo URL *</label><input type="text" id="vEmbedUrl" placeholder="https://www.youtube.com/watch?v=…"/></div>
-            <div class="field"><label>Title</label><input type="text" id="vEmbedTitle" placeholder="Video title"/></div>
-            <div class="field"><label>Category</label>
-              <select id="vEmbedCat">
-                <option>Health Tips</option><option>Medicine Info</option><option>Promotions</option><option>News</option>
-              </select>
+
+          <!-- Tabs -->
+          <div style="display:flex;gap:4px;margin:14px 0 20px;border-bottom:2px solid #eef2f7;padding-bottom:0;">
+            <button id="avTabUrlBtn" onclick="adminVideoTab('url')" style="padding:9px 18px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:0.875rem;font-weight:600;cursor:pointer;color:var(--teal);border-bottom:2px solid var(--teal);margin-bottom:-2px;transition:all 0.15s;">🔗 YouTube / Vimeo</button>
+            <button id="avTabUploadBtn" onclick="adminVideoTab('upload')" style="padding:9px 18px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:0.875rem;font-weight:600;cursor:pointer;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;">📁 Upload from Device</button>
+          </div>
+
+          <!-- URL Tab -->
+          <div id="avTabUrl">
+            <div class="form-grid">
+              <div class="field"><label>YouTube / Vimeo URL *</label><input type="text" id="vEmbedUrl" placeholder="https://www.youtube.com/watch?v=…"/></div>
+              <div class="field"><label>Title</label><input type="text" id="vEmbedTitle" placeholder="Video title"/></div>
+              <div class="field"><label>Category</label>
+                <select id="vEmbedCat">
+                  <option>Health Tips</option><option>Medicine Info</option><option>Promotions</option><option>News</option><option>Uploaded</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top:14px;display:flex;align-items:center;gap:12px;">
+              <button class="btn-teal" onclick="adminAddVideo()">💾 Add Video</button>
+              <div class="form-msg" id="vMsg"></div>
             </div>
           </div>
-          <div style="margin-top:14px; display:flex; align-items:center; gap:12px;">
-            <button class="btn-teal" onclick="adminAddVideo()">💾 Add Video</button>
-            <div class="form-msg" id="vMsg"></div>
+
+          <!-- Upload Tab -->
+          <div id="avTabUpload" style="display:none;">
+            <!-- Drop zone -->
+            <div id="avDropZone" onclick="document.getElementById('avFileInput').click()" style="
+              border:2px dashed rgba(0,137,123,0.35); border-radius:14px;
+              padding:40px 24px; text-align:center; cursor:pointer;
+              background:rgba(0,137,123,0.03); transition:all 0.2s;
+              margin-bottom:16px;
+            "
+            ondragover="event.preventDefault();this.style.borderColor='var(--teal)';this.style.background='rgba(0,137,123,0.07)'"
+            ondragleave="this.style.borderColor='rgba(0,137,123,0.35)';this.style.background='rgba(0,137,123,0.03)'"
+            ondrop="event.preventDefault();this.style.borderColor='rgba(0,137,123,0.35)';this.style.background='rgba(0,137,123,0.03)';if(event.dataTransfer.files[0])adminHandleVideoFile(event.dataTransfer.files[0])"
+            >
+              <div style="font-size:2.8rem;margin-bottom:10px;">🎬</div>
+              <strong style="display:block;font-size:0.95rem;color:var(--text);margin-bottom:6px;">Click to browse or drag & drop a video</strong>
+              <p style="font-size:0.8rem;color:var(--text-muted);margin:0;">Supports MP4, WebM, MOV · Max 200 MB</p>
+              <!-- Progress bar -->
+              <div id="avProgressWrap" style="display:none;margin-top:16px;">
+                <div style="height:6px;background:#eee;border-radius:3px;overflow:hidden;">
+                  <div id="avProgressFill" style="height:100%;background:var(--teal);border-radius:3px;width:0%;transition:width 0.2s;"></div>
+                </div>
+                <div id="avProgressLabel" style="font-size:0.75rem;color:var(--text-muted);margin-top:4px;">Reading file…</div>
+              </div>
+            </div>
+            <input type="file" id="avFileInput" accept="video/*" style="display:none;" onchange="if(this.files[0])adminHandleVideoFile(this.files[0])"/>
+
+            <!-- File info preview -->
+            <div id="avFileInfo" style="display:none;background:#f0faf8;border:1px solid rgba(0,137,123,0.2);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:none;align-items:center;gap:10px;">
+              <span style="font-size:1.5rem;">📹</span>
+              <div style="flex:1;">
+                <div id="avFileName" style="font-weight:600;font-size:0.875rem;color:var(--text);"></div>
+                <div id="avFileSize" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;"></div>
+              </div>
+              <button onclick="adminClearVideoUpload()" style="background:transparent;border:1px solid rgba(192,57,43,0.25);border-radius:6px;color:#c0392b;padding:4px 10px;font-size:0.75rem;cursor:pointer;">✕ Clear</button>
+            </div>
+
+            <div class="form-grid">
+              <div class="field"><label>Video Title</label><input type="text" id="avUploadTitle" placeholder="Auto-filled from filename"/></div>
+              <div class="field"><label>Category</label>
+                <select id="avUploadCat">
+                  <option value="Uploaded">Uploaded</option>
+                  <option>Health Tips</option><option>Medicine Info</option><option>Promotions</option><option>News</option>
+                </select>
+              </div>
+            </div>
+            <div style="margin-top:14px;display:flex;align-items:center;gap:12px;">
+              <button class="btn-teal" onclick="adminSaveUploadedVideo()">💾 Save Video</button>
+              <div class="form-msg" id="avUploadMsg"></div>
+            </div>
           </div>
         </div>
 
@@ -1501,6 +1578,23 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
               </div>
               <div class="field"><label>Product Icon / Emoji</label><input type="text" id="catFIcon" placeholder="💊" maxlength="4"></div>
               <div class="field form-full"><label>Description</label><input type="text" id="catFDesc" placeholder="Short product description"></div>
+              <div class="field form-full">
+                <label>Product Image</label>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <label for="catFImageUpload" style="display:inline-flex;align-items:center;gap:7px;background:var(--teal);color:white;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;">
+                      📁 Upload from Device
+                      <input type="file" id="catFImageUpload" accept="image/*" style="display:none;" onchange="handleProductImageUpload(this,'catFImage','catFImagePreview')"/>
+                    </label>
+                    <span style="font-size:0.78rem;color:var(--text-muted);">— or paste URL —</span>
+                  </div>
+                  <input type="text" id="catFImage" placeholder="https://… (image URL)" oninput="updateImagePreview(this.value,'catFImagePreview')"/>
+                  <div id="catFImagePreview" style="display:none;">
+                    <img id="catFImagePreviewImg" src="" alt="Preview" style="height:90px;border-radius:8px;border:1px solid #dde5ed;object-fit:contain;background:#f8fafc;padding:4px;"/>
+                    <button type="button" onclick="clearProductImage('catFImage','catFImagePreview')" style="display:block;margin-top:4px;background:transparent;border:1px solid rgba(192,57,43,0.3);border-radius:6px;color:#c0392b;font-size:0.75rem;padding:3px 10px;cursor:pointer;">✕ Remove</button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="modal-footer">
@@ -1734,7 +1828,23 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
         </div>
         <div class="field form-full"><label>Description</label><input type="text" id="epDesc"/></div>
         <div class="field form-full"><label>Dosage &amp; Usage Instructions</label><input type="text" id="epDosage" placeholder="e.g. 1 tablet twice daily after meals"/></div>
-        <div class="field form-full"><label>Image URL</label><input type="text" id="epImage"/></div>
+        <div class="field form-full">
+          <label>Product Image</label>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+              <label for="epImageUpload" style="display:inline-flex;align-items:center;gap:7px;background:var(--teal);color:white;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-weight:600;">
+                📁 Upload from Device
+                <input type="file" id="epImageUpload" accept="image/*" style="display:none;" onchange="handleProductImageUpload(this,'epImage','epImagePreview')"/>
+              </label>
+              <span style="font-size:0.78rem;color:var(--text-muted);">— or paste URL —</span>
+            </div>
+            <input type="text" id="epImage" placeholder="https://… (image URL)" oninput="updateImagePreview(this.value,'epImagePreview')"/>
+            <div id="epImagePreview" style="display:none;">
+              <img id="epImagePreviewImg" src="" alt="Preview" style="height:90px;border-radius:8px;border:1px solid #dde5ed;object-fit:contain;background:#f8fafc;padding:4px;"/>
+              <button type="button" onclick="clearProductImage('epImage','epImagePreview')" style="display:block;margin-top:4px;background:transparent;border:1px solid rgba(192,57,43,0.3);border-radius:6px;color:#c0392b;font-size:0.75rem;padding:3px 10px;cursor:pointer;">✕ Remove</button>
+            </div>
+          </div>
+        </div>
         <div class="field"><label>Qty 1 Label</label><input type="text" id="epQty1Label"/></div>
         <div class="field"><label>Qty 1 Price</label><input type="number" id="epQty1Price"/></div>
         <div class="field"><label>Qty 2 Label</label><input type="text" id="epQty2Label"/></div>
@@ -1919,7 +2029,7 @@ function renderDashboard() {
           ? '<span style="color:#e53935;font-weight:700;background:#fde8e8;padding:2px 8px;border-radius:6px;">OUT OF STOCK</span>'
           : '<span style="color:#e53935;font-weight:700;background:#fde8e8;padding:2px 8px;border-radius:6px;">&#9888; ' + stockVal + ' left</span>';
         return '<tr style="background:#fff5f5;">' +
-          '<td style="font-size:1.1rem;">' + (p.icon||'💊') + '</td>' +
+          '<td style="width:44px;padding:4px 8px;">' + (p.image && p.image.trim() ? '<img src="'+p.image+'" style="width:32px;height:32px;object-fit:contain;border-radius:5px;background:#f0f4f8;border:1px solid #eee;">' : '<span style="font-size:1.1rem;">'+( p.icon||'💊')+'</span>') + '</td>' +
           '<td><strong>' + (p.name||'') + '</strong></td>' +
           '<td>' + (p.category||p.company||'Medicine') + '</td>' +
           '<td>' + stockHtml + '</td>' +
@@ -1968,8 +2078,11 @@ function renderProductsAdmin(filter) {
 
   tbody.innerHTML = slice.map(function(p) {
     var realIdx = products.indexOf(p);
+    var imgCell = p.image && p.image.trim()
+      ? '<td style="width:44px;padding:4px 8px;"><img src="'+p.image+'" style="width:36px;height:36px;object-fit:contain;border-radius:6px;background:#f0f4f8;border:1px solid #eee;" onerror="this.outerHTML=\'<span style=font-size:1.2rem>\'+(\''+( p.icon||'💊')+'\')+\'</span>\'"/></td>'
+      : '<td style="font-size:1.2rem;width:40px;text-align:center;">' + (p.icon||'💊') + '</td>';
     return '<tr' + (parseInt(p.stock||0) < 3 ? ' style="background:#fff5f5;"' : '') + '>' +
-      '<td style="font-size:1.2rem;width:40px;">' + (p.icon||'💊') + '</td>' +
+      imgCell +
       '<td><strong>' + (p.name||'') + '</strong></td>' +
       '<td>' + (p.category||p.company||'Medicine') + '</td>' +
       '<td>₹' + Number(p.price||p.mrp||0).toFixed(0) + '</td>' +
@@ -2046,6 +2159,7 @@ function adminAddProduct() {
     ['pName','pCat','pPrice','pStock','pDesc','pImage','pIcon','pRx','pBrand','pExpiry','pGeneric','pDosage',
      'pQty1Label','pQty1Price','pQty2Label','pQty2Price','pQty3Label','pQty3Price','pDiscountPrice']
       .forEach(function(id){ var el=document.getElementById(id); if(el){el.value='';} });
+    clearProductImage('pImage','pImagePreview');
     renderProductsAdmin();
     updateSidebarBadges();
     msg.innerHTML = '<span style="color:var(--success);">✅ "' + name + '" saved! Now visible on the website.</span>';
@@ -2076,6 +2190,7 @@ function openEditProduct(idx) {
   document.getElementById('epRx').value        = p.rx||'No';
   document.getElementById('epDesc').value      = p.desc||'';
   document.getElementById('epImage').value     = p.image||'';
+  updateImagePreview(p.image||'', 'epImagePreview');
   document.getElementById('epQty1Label').value = p.qty1Label||'';
   document.getElementById('epQty1Price').value = p.qty1Price||'';
   document.getElementById('epQty2Label').value = p.qty2Label||'';
@@ -2388,17 +2503,106 @@ function saveVids(arr) { localStorage.setItem('ssb_promo_videos', JSON.stringify
 function renderVideosAdmin() {
   var vids = loadVids();
   var el   = document.getElementById('videosAdminList');
-  if (!vids.length) { el.innerHTML = '<div class="loading-row">No videos added yet.</div>'; return; }
+  if (!vids.length) { el.innerHTML = '<div class="loading-row">No videos added yet. Use the form above to add your first video.</div>'; return; }
   el.innerHTML = vids.map(function(v) {
-    var icon = v.type==='youtube'?'▶️':v.type==='vimeo'?'🎞️':'📹';
-    return '<div class="video-admin-item">' +
-      '<div class="vai-icon">'+icon+'</div>' +
-      '<div style="flex:1;"><div class="vai-name">'+v.title+'</div><div class="vai-meta">'+v.category+' · '+v.date+(v.fileSize?' · '+v.fileSize:'')+'</div></div>' +
+    var icon  = v.type==='youtube' ? '▶️' : v.type==='vimeo' ? '🎞️' : '📹';
+    var badge = v.type==='youtube'
+      ? '<span style="background:#c4302b;color:white;font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:20px;">YouTube</span>'
+      : v.type==='vimeo'
+      ? '<span style="background:#1ab7ea;color:white;font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:20px;">Vimeo</span>'
+      : '<span style="background:var(--teal);color:white;font-size:0.6rem;font-weight:700;padding:2px 7px;border-radius:20px;">Uploaded</span>';
+
+    // Thumbnail for uploaded videos
+    var thumbHtml = '';
+    if (v.type === 'upload' && v.src) {
+      thumbHtml = '<video src="'+v.src+'" style="width:80px;height:52px;object-fit:cover;border-radius:7px;background:#000;flex-shrink:0;" muted preload="metadata"></video>';
+    } else if (v.type === 'youtube' && v.embedId) {
+      thumbHtml = '<img src="https://img.youtube.com/vi/'+v.embedId+'/mqdefault.jpg" style="width:80px;height:52px;object-fit:cover;border-radius:7px;flex-shrink:0;" onerror="this.style.display=\'none\'">';
+    } else {
+      thumbHtml = '<div style="width:80px;height:52px;background:#f0f4f8;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">'+icon+'</div>';
+    }
+
+    return '<div class="video-admin-item" style="gap:12px;">' +
+      thumbHtml +
+      '<div style="flex:1;min-width:0;">' +
+        '<div class="vai-name" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' + v.title + ' ' + badge + '</div>' +
+        '<div class="vai-meta">' + v.category + ' · ' + v.date + (v.fileSize?' · 📦 '+v.fileSize:'') + '</div>' +
+      '</div>' +
       '<button class="btn-sm danger" onclick="deleteVid('+v.id+')">🗑 Delete</button>' +
     '</div>';
   }).join('');
   updateSidebarBadges();
 }
+
+// ── Video tab switcher ──
+window.adminVideoTab = function(tab) {
+  ['url','upload'].forEach(function(t) {
+    var cont = document.getElementById('avTab' + t.charAt(0).toUpperCase() + t.slice(1));
+    var btn  = document.getElementById('avTab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
+    if (cont) cont.style.display = t === tab ? 'block' : 'none';
+    if (btn) {
+      btn.style.color = t === tab ? 'var(--teal)' : 'var(--text-muted)';
+      btn.style.borderBottomColor = t === tab ? 'var(--teal)' : 'transparent';
+    }
+  });
+};
+
+// ── Handle video file picked ──
+var _avPendingFile = null;
+window.adminHandleVideoFile = function(file) {
+  if (!file.type.startsWith('video/')) { alert('Please select a valid video file (MP4, WebM, MOV).'); return; }
+  if (file.size > 200 * 1024 * 1024) { alert('File is too large. Maximum size is 200 MB.'); return; }
+  _avPendingFile = file;
+  // Auto-fill title
+  var titleEl = document.getElementById('avUploadTitle');
+  if (titleEl && !titleEl.value) titleEl.value = file.name.replace(/\.[^.]+$/, '');
+  // Show file info
+  var infoEl = document.getElementById('avFileInfo');
+  if (infoEl) { infoEl.style.display = 'flex'; document.getElementById('avFileName').textContent = file.name; document.getElementById('avFileSize').textContent = (file.size/1024/1024).toFixed(1) + ' MB'; }
+};
+
+window.adminClearVideoUpload = function() {
+  _avPendingFile = null;
+  var infoEl = document.getElementById('avFileInfo');
+  if (infoEl) infoEl.style.display = 'none';
+  var ti = document.getElementById('avUploadTitle'); if (ti) ti.value = '';
+  var fi = document.getElementById('avFileInput'); if (fi) fi.value = '';
+};
+
+window.adminSaveUploadedVideo = function() {
+  var msgEl = document.getElementById('avUploadMsg');
+  if (!_avPendingFile) { msgEl.innerHTML = '<span style="color:var(--danger);">Please select a video file first.</span>'; return; }
+  var title = (document.getElementById('avUploadTitle').value||'').trim() || _avPendingFile.name.replace(/\.[^.]+$/,'');
+  var cat   = document.getElementById('avUploadCat').value;
+  msgEl.innerHTML = '<span style="color:var(--text-muted);">⏳ Reading file…</span>';
+
+  // Progress animation
+  var pw = document.getElementById('avProgressWrap'), pf = document.getElementById('avProgressFill'), pl = document.getElementById('avProgressLabel');
+  if (pw) { pw.style.display='block'; var prog=0; var ticker=setInterval(function(){ prog=Math.min(90,prog+Math.random()*18); pf.style.width=prog+'%'; },120); }
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    clearInterval(ticker);
+    if (pf) pf.style.width='100%';
+    if (pl) pl.textContent = 'Done!';
+    setTimeout(function(){ if (pw) pw.style.display='none'; }, 600);
+
+    var vids = loadVids();
+    vids.unshift({
+      id: Date.now(), title: title, category: cat,
+      date: new Date().toLocaleDateString('en-IN'),
+      type: 'upload', src: e.target.result,
+      fileSize: (_avPendingFile.size/1024/1024).toFixed(1)+' MB'
+    });
+    saveVids(vids);
+    renderVideosAdmin();
+    adminClearVideoUpload();
+    msgEl.innerHTML = '<span style="color:var(--success);">✅ "' + title + '" saved and live on site!</span>';
+    setTimeout(function(){ msgEl.innerHTML=''; }, 4000);
+  };
+  reader.onerror = function() { msgEl.innerHTML = '<span style="color:var(--danger);">❌ Failed to read file. Please try again.</span>'; };
+  reader.readAsDataURL(_avPendingFile);
+};
 
 function getYTId(url) {
   var r = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/);
@@ -2766,9 +2970,10 @@ function clearBulkDiscount() {
 function openAddCatalogProduct() {
   document.getElementById('catModalTitle').textContent = '➕ Add Product';
   document.getElementById('catEditId').value = '';
-  ['catFBarcode','catFCompany','catFName','catFPack','catFQty','catFMrp','catFSrate','catFPrate','catFGst','catFDiscount','catFDiscPrice','catFIcon','catFDesc'].forEach(function(id){
+  ['catFBarcode','catFCompany','catFName','catFPack','catFQty','catFMrp','catFSrate','catFPrate','catFGst','catFDiscount','catFDiscPrice','catFIcon','catFDesc','catFImage'].forEach(function(id){
     var el = document.getElementById(id); if(el) el.value = '';
   });
+  clearProductImage('catFImage','catFImagePreview');
   var catCatReset = document.getElementById('catFCategory'); if(catCatReset) catCatReset.value = '';
   var catRxReset  = document.getElementById('catFRx');       if(catRxReset)  catRxReset.value  = 'No';
   document.getElementById('catProductModal').classList.add('open');
@@ -2800,6 +3005,8 @@ function openEditCatalogProduct(id) {
   if (catIconEl) catIconEl.value = p.icon || '';
   var catDescEl = document.getElementById('catFDesc');
   if (catDescEl) catDescEl.value = p.desc || '';
+  var catImageEl = document.getElementById('catFImage');
+  if (catImageEl) { catImageEl.value = p.image || ''; updateImagePreview(p.image||'','catFImagePreview'); }
   document.getElementById('catProductModal').classList.add('open');
 }
 
@@ -2826,7 +3033,8 @@ function saveCatProduct() {
     category:    (document.getElementById('catFCategory') ? document.getElementById('catFCategory').value : '') || 'Medicine',
     rx:          document.getElementById('catFRx') ? document.getElementById('catFRx').value : 'No',
     icon:        document.getElementById('catFIcon') ? document.getElementById('catFIcon').value.trim() || '💊' : '💊',
-    desc:        document.getElementById('catFDesc') ? document.getElementById('catFDesc').value.trim() : ''
+    desc:        document.getElementById('catFDesc') ? document.getElementById('catFDesc').value.trim() : '',
+    image:       document.getElementById('catFImage') ? document.getElementById('catFImage').value.trim() : ''
   };
   if (editId) {
     var idx = catalogProducts.findIndex(function(x){ return x.id === editId; });
@@ -3016,6 +3224,62 @@ function refreshAllCategoryDropdowns() {
   });
   var epCat = document.getElementById('epCat');
   if (epCat) epCat.innerHTML = opts;
+}
+
+// ══════════════════════════════════════════════════════════════
+//  IMAGE UPLOAD HELPERS
+// ══════════════════════════════════════════════════════════════
+
+/**
+ * Called when admin picks a file from device.
+ * Reads it as base64 data URL and stores in the URL input field,
+ * then shows a thumbnail preview.
+ */
+function handleProductImageUpload(fileInput, urlFieldId, previewId) {
+  var file = fileInput.files && fileInput.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { alert('Please select a valid image file.'); return; }
+  if (file.size > 4 * 1024 * 1024) { alert('Image is too large. Please use an image under 4 MB.'); return; }
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var dataUrl = e.target.result;
+    var urlField = document.getElementById(urlFieldId);
+    if (urlField) urlField.value = dataUrl;
+    showImagePreview(dataUrl, previewId);
+  };
+  reader.readAsDataURL(file);
+  // Reset file input so same file can be re-selected
+  fileInput.value = '';
+}
+
+/** Called when URL field is typed into */
+function updateImagePreview(val, previewId) {
+  if (val && val.trim()) {
+    showImagePreview(val.trim(), previewId);
+  } else {
+    hideImagePreview(previewId);
+  }
+}
+
+function showImagePreview(src, previewId) {
+  var wrap = document.getElementById(previewId);
+  var img  = document.getElementById(previewId + 'Img');
+  if (!wrap || !img) return;
+  img.src = src;
+  img.onerror = function() { hideImagePreview(previewId); };
+  wrap.style.display = 'block';
+}
+
+function hideImagePreview(previewId) {
+  var wrap = document.getElementById(previewId);
+  if (wrap) wrap.style.display = 'none';
+}
+
+function clearProductImage(urlFieldId, previewId) {
+  var urlField = document.getElementById(urlFieldId);
+  if (urlField) urlField.value = '';
+  hideImagePreview(previewId);
 }
 
 // Init categories on load
