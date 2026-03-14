@@ -862,10 +862,10 @@
   .product-cat { font-size: 0.72rem; color: var(--teal); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
   .product-desc { font-size: 0.76rem; color: var(--text-muted); line-height: 1.4; }
   .product-price { font-size: 1rem; font-weight: 700; color: var(--deep); margin-top: 6px; }
-  .product-footer { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-top: 1px solid #f0f4f8; background: #fafcfe; }
-  .rx-badge { font-size: 0.68rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; letter-spacing: 0.5px; }
-  .rx-yes { background: rgba(192,57,43,0.06); color: #c0392b; border:1px solid rgba(192,57,43,0.15); }
-  .rx-no { background: rgba(0,137,123,0.06); color: #00897B; border:1px solid rgba(0,137,123,0.15); }
+  .product-footer { display: flex; align-items: center; justify-content:center; padding: 10px 14px; border-top: 1px solid #f0f4f8; background: #fafcfe; }
+  .rx-badge { display:none; }
+  .rx-yes { display:none; }
+  .rx-no  { display:none; }
   .stock-info { font-size: 0.75rem; color: var(--text-muted); }
   .empty-state { text-align: center; padding: 60px 20px; color: var(--text-muted); }
   .empty-state h3 { font-size: 1.2rem; margin: 10px 0 6px; color: var(--text); }
@@ -1731,7 +1731,7 @@
     padding: 8px 14px; font-size: 0.78rem; font-weight: 700;
     cursor: pointer; font-family: 'DM Sans', sans-serif;
     text-decoration: none; transition: background 0.2s, transform 0.1s;
-    flex:1; margin-left:8px;
+    width: 100%;
   }
   .product-wa-btn:hover { background: #e05555; transform: translateY(-1px); }
 </style>
@@ -3965,21 +3965,17 @@
       var uid = p.name.replace(/[^a-z0-9]/gi,'_') + '_' + Math.random().toString(36).slice(2,6);
       var brandStr = (p.brand || p.manufacturer) ? '<div class="brand-line">' + (p.brand||p.manufacturer) + '</div>' : '';
       var packStr  = p.pack ? '<div style="font-size:0.74rem;color:#888;">' + p.pack + '</div>' : '';
-      var pJson = encodeURIComponent(JSON.stringify(p));
-      return '<div class="product-card" onclick="openPdModal(this)" data-p="' + pJson.replace(/"/g,'&quot;') + '" style="cursor:pointer;">' +
+      var pData = JSON.stringify(p).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return '<div class="product-card" onclick="openPdModal(this)" data-p=\'' + JSON.stringify(p).replace(/'/g,"&#39;").replace(/\\/g,'&#92;') + '\' style="cursor:pointer;">' +
         imgHtml +
         '<div class="product-info">' +
           '<div class="product-name">' + p.name + '</div>' +
           brandStr + packStr +
-          stockBadge(p) +
-          expiryBadge(p) +
           (p.desc ? '<div class="product-desc">' + p.desc + '</div>' : '') +
           dosageSection(p, uid) +
           '<div class="product-pricing">' + pricingHtml + '</div>' +
         '</div>' +
         '<div class="product-footer">' +
-          '<span class="rx-badge ' + (p.rx === 'Yes' ? 'rx-yes' : 'rx-no') + '">' +
-            (p.rx === 'Yes' ? 'Rx Required' : 'No Rx') + '</span>' +
           '<a href="' + waUrl + '" target="_blank" rel="noopener" class="product-wa-btn" aria-label="Order ' + p.name + ' on WhatsApp" onclick="event.stopPropagation();showOrderToast(this)">' +
             'Add to Cart' +
           '</a>' +
@@ -5881,7 +5877,7 @@ window.openPdModal = function(card) {
   var raw = card.getAttribute('data-p');
   if (!raw) return;
   var p;
-  try { p = JSON.parse(decodeURIComponent(raw)); } catch(e) { return; }
+  try { p = JSON.parse(raw); } catch(e) { try { p = JSON.parse(decodeURIComponent(raw)); } catch(e2) { return; } }
 
   // Title
   document.getElementById('pdTitle').textContent = p.name;
