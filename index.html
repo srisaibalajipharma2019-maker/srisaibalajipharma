@@ -2113,7 +2113,7 @@
   // ── Password ──
   window.checkBannerPassword = function() {
     var pw = document.getElementById('bmAdminPassword').value;
-    var stored = localStorage.getItem('ssb_admin_pw') || 'admin123';
+    var stored = localStorage.getItem('ssb_admin_pwd') || 'admin123';
     if (pw === stored) {
       document.getElementById('bmPasswordGate').style.display = 'none';
       document.getElementById('bmAdminContent').style.display = 'block';
@@ -3743,7 +3743,7 @@
   ];
 
   // ====== STATE ======
-  const ADMIN_PASSWORD = 'admin123';
+  const ADMIN_PASSWORD = localStorage.getItem('ssb_admin_pwd') || 'admin123';
   let products = [];
   let services = [];
   let activeCategory = 'All';
@@ -3965,7 +3965,6 @@
       var uid = p.name.replace(/[^a-z0-9]/gi,'_') + '_' + Math.random().toString(36).slice(2,6);
       var brandStr = (p.brand || p.manufacturer) ? '<div class="brand-line">' + (p.brand||p.manufacturer) + '</div>' : '';
       var packStr  = p.pack ? '<div style="font-size:0.74rem;color:#888;">' + p.pack + '</div>' : '';
-      var pData = JSON.stringify(p).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       return '<div class="product-card" onclick="openPdModal(this)" data-p=\'' + JSON.stringify(p).replace(/'/g,"&#39;").replace(/\\/g,'&#92;') + '\' style="cursor:pointer;">' +
         imgHtml +
         '<div class="product-info">' +
