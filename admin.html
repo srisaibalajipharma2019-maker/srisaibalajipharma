@@ -471,6 +471,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
 .tag-active   { background: rgba(39,174,96,0.1);   color: #27ae60; border: 1px solid rgba(39,174,96,0.2); }
 .tag-rx       { background: rgba(192,57,43,0.08);  color: var(--danger); border: 1px solid rgba(192,57,43,0.15); }
 .tag-no-rx    { background: rgba(0,137,123,0.08);  color: var(--teal);   border: 1px solid rgba(0,137,123,0.15); }
+.tag-out      { background: rgba(192,57,43,0.08);  color: var(--danger); border: 1px solid rgba(192,57,43,0.15); }
 .tag-new      { background: rgba(200,169,110,0.12);color: #a07840;       border: 1px solid rgba(200,169,110,0.25); }
 .tag-proc     { background: rgba(0,137,123,0.1);   color: var(--teal);   border: 1px solid rgba(0,137,123,0.2); }
 .tag-done     { background: rgba(39,174,96,0.1);   color: #27ae60;       border: 1px solid rgba(39,174,96,0.2); }
@@ -2794,7 +2795,7 @@ function renderCatalog() {
       '<td><strong style="font-size:0.875rem;">' + p.name + '</strong>' + (p.pack?'<br><span style="font-size:0.72rem;color:var(--text-muted);">'+p.pack+'</span>':'') + '</td>' +
       '<td style="font-size:0.8rem;">' + (p.company||'—') + '</td>' +
       '<td style="font-size:0.8rem;">' + (p.pack||'—') + '</td>' +
-      '<td><span class="tag ' + (inStock?'tag-active':'tag-rx') + '">' + (p.qty||0) + '</span></td>' +
+      '<td><span class="tag ' + (inStock ? 'tag-active' : 'tag-out') + '">' + (p.qty||0) + '</span></td>' +
       '<td style="font-weight:600;">' + (mrp>0 ? '<span style="text-decoration:'+(discPct>0?'line-through':'none')+';color:'+(discPct>0?'#aaa':'inherit')+';">₹'+mrp.toFixed(0)+'</span>' : '—') + '</td>' +
       '<td>' + discHtml + '</td>' +
       '<td style="font-weight:700;color:var(--teal);">' + (finalPrice>0?'₹'+finalPrice.toFixed(0):'—') + '</td>' +
