@@ -217,18 +217,15 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 
 /* Footer */
 .product-footer {
-  display:flex; align-items:center; justify-content:space-between;
+  display:flex; align-items:center; justify-content:center;
   padding:10px 14px;
   border-top:1px solid #f0f4f8;
   background:#fafcfe;
   margin-top:auto;
 }
-.rx-badge {
-  font-size:0.68rem; font-weight:600;
-  padding:3px 8px; border-radius:20px;
-}
-.rx-yes { background:rgba(192,57,43,0.06); color:#c0392b; border:1px solid rgba(192,57,43,0.15); }
-.rx-no  { background:rgba(0,137,123,0.06); color:var(--teal); border:1px solid rgba(0,137,123,0.15); }
+.rx-badge { display:none; }
+.rx-yes   { display:none; }
+.rx-no    { display:none; }
 
 /* Add to Cart / Order button */
 .wa-btn {
@@ -242,7 +239,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   text-decoration:none;
   cursor:pointer;
   transition:background 0.15s, transform 0.1s;
-  flex:1; margin-left:8px;
+  width:100%;
 }
 .wa-btn:hover { background:#e05555; transform:translateY(-1px); }
 
@@ -673,21 +670,17 @@ function renderProducts(list) {
     var uid = p.name.replace(/[^a-z0-9]/gi,'_') + '_' + Math.random().toString(36).slice(2,6);
     var brandStr = (p.brand || p.manufacturer) ? '<div class="product-brand">' + (p.brand||p.manufacturer) + '</div>' : '';
     var packStr  = p.pack ? '<div class="product-pack">' + p.pack + '</div>' : '';
-    var pJson = encodeURIComponent(JSON.stringify(p));
-    return '<div class="product-card" onclick="openPdModal(this)" data-p="' + pJson.replace(/"/g,'&quot;') + '" style="cursor:pointer;">' +
+    return '<div class="product-card" onclick="openPdModal(this)" data-p=\'' + JSON.stringify(p).replace(/'/g,"&#39;").replace(/\\/g,'&#92;') + '\' style="cursor:pointer;">' +
       imgHtml +
       '<div class="product-info">' +
         '<div class="product-name">' + p.name + '</div>' +
         brandStr +
         packStr +
-        stockBadge(p) +
-        expiryBadge(p) +
         (p.desc ? '<div class="product-desc">' + p.desc + '</div>' : '') +
         dosageSection(p, uid) +
         '<div class="product-pricing">' + pricingHtml + '</div>' +
       '</div>' +
       '<div class="product-footer">' +
-        '<span class="rx-badge ' + (p.rx==='Yes'?'rx-yes':'rx-no') + '">' + (p.rx==='Yes'?'Rx Required':'No Rx') + '</span>' +
         '<a href="' + waUrl + '" target="_blank" rel="noopener" class="wa-btn" onclick="event.stopPropagation();showOrderToast(this)">' +
           'Add to Cart' +
         '</a>' +
@@ -796,7 +789,7 @@ loadProducts();
 var _pdZoomLevel = 1;
 window.openPdModal = function(card) {
   var raw = card.getAttribute('data-p'); if (!raw) return;
-  var p; try { p = JSON.parse(decodeURIComponent(raw)); } catch(e) { return; }
+  var p; try { p = JSON.parse(raw); } catch(e) { try { p = JSON.parse(decodeURIComponent(raw)); } catch(e2) { return; } }
   document.getElementById('pdTitle').textContent = p.name;
   var mainImg = document.getElementById('pdMainImg'), emoji = document.getElementById('pdImgEmoji');
   _pdZoomLevel = 1; mainImg.style.transform = 'scale(1)';
