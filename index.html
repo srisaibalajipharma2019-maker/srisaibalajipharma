@@ -2405,6 +2405,7 @@
     </div>
   </div>
   <ul class="nav-links">
+    <li><a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">🏠 Home</a></li>
     <li><a href="#services">Services</a></li>
     <li><a href="#products">Products</a></li>
     <li><a href="products-catalogue.html">📋 Catalogue</a></li>
@@ -5857,7 +5858,7 @@ function toggleDosage(uid) {
 </div>
 
 <!-- ====== BACK TO TOP BUTTON ====== -->
-<button id="backToTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Back to top" style="
+<button id="backToTop" aria-label="Back to top" style="
   position:fixed; bottom:24px; right:24px; width:46px; height:46px;
   border-radius:50%; border:none; cursor:pointer;
   background:var(--teal); color:#fff; font-size:1.2rem;
@@ -5865,7 +5866,7 @@ function toggleDosage(uid) {
   display:flex; align-items:center; justify-content:center;
   opacity:0; transform:translateY(10px);
   transition:opacity 0.3s ease, transform 0.3s ease;
-  z-index:999; pointer-events:none;
+  z-index:9999; pointer-events:none;
 ">&#8679;</button>
 
 <script>
@@ -6046,11 +6047,16 @@ window.showOrderToast = function(el) {
 (function() {
   var btn = document.getElementById('backToTop');
   if (!btn) return;
-  window.addEventListener('scroll', function() {
-    var show = window.scrollY > 400;
-    btn.style.opacity      = show ? '1' : '0';
-    btn.style.transform    = show ? 'translateY(0)' : 'translateY(10px)';
-    btn.style.pointerEvents= show ? 'auto' : 'none';
+  btn.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+  function updateBtn() {
+    var show = window.scrollY > 400;
+    btn.style.opacity       = show ? '1' : '0';
+    btn.style.transform     = show ? 'translateY(0)' : 'translateY(10px)';
+    btn.style.pointerEvents = show ? 'auto' : 'none';
+  }
+  window.addEventListener('scroll', updateBtn, { passive: true });
+  updateBtn();
 })();
 </script>
