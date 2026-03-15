@@ -2396,6 +2396,42 @@
 </script>
 
 <!-- NAVBAR -->
+<!-- ====== SITE BANNER STRIP ====== -->
+<div id="siteBannerStrip" style="display:none;width:100%;text-align:center;padding:9px 20px;font-size:0.84rem;font-weight:600;position:relative;z-index:101;letter-spacing:0.2px;"></div>
+
+<script>
+(function() {
+  var BNR_STYLES = {
+    teal: { bg:'#00897B', color:'#fff' },
+    gold: { bg:'#C8A96E', color:'#fff' },
+    red:  { bg:'#c0392b', color:'#fff' },
+    dark: { bg:'#060f1e', color:'#E8C98E' }
+  };
+  function showBanners() {
+    try {
+      var banners = JSON.parse(localStorage.getItem('ssb_banners') || '[]');
+      var active = banners.filter(function(b) { return b.active; });
+      var strip = document.getElementById('siteBannerStrip');
+      if (!active.length || !strip) return;
+      var b = active[0]; // show the first active banner
+      var st = BNR_STYLES[b.style] || BNR_STYLES.teal;
+      strip.style.background = st.bg;
+      strip.style.color = st.color;
+      var html = b.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      if (b.link && b.linkLabel) {
+        html += ' &nbsp;<a href="' + b.link + '" style="color:inherit;font-weight:700;text-decoration:underline;">' + b.linkLabel.replace(/</g,'&lt;') + '</a>';
+      }
+      strip.innerHTML = html;
+      strip.style.display = 'block';
+      // push nav down
+      var nav = document.querySelector('nav');
+      if (nav) nav.style.top = strip.offsetHeight + 'px';
+    } catch(e) {}
+  }
+  document.addEventListener('DOMContentLoaded', showBanners);
+})();
+</script>
+
 <nav>
   <div class="nav-brand">
     <div class="nav-logo">⚕</div>
