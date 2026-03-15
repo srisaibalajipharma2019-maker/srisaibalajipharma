@@ -1086,7 +1086,6 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
       </div>
     </div>
     <div class="admin-nav-right">
-      <div class="admin-badge"><div class="live-dot"></div> Live</div>
       <button class="logout-btn" onclick="showPanel('dashboard',document.querySelector('.sidebar-link'))">🏠 Home</button>
       <a href="index.html" target="_blank" class="logout-btn" style="text-decoration:none;">🌐 View Site</a>
       <a href="products-catalogue.html" target="_blank" class="logout-btn" style="text-decoration:none;">📋 Catalogue</a>
@@ -1126,6 +1125,10 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
       <button class="sidebar-link" onclick="showPanel('videos',this)">
         <span class="sicon">🎬</span> Videos
         <span class="sidebar-badge" id="sbVideos">0</span>
+      </button>
+
+      <button class="sidebar-link" onclick="showPanel('banners',this)">
+        <span class="sicon">📢</span> Banners
       </button>
 
       <div class="sidebar-section-label">Config</div>
@@ -1607,6 +1610,70 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
       </div>
 
       <!-- ── SETTINGS ──────────────────────────────── -->
+      <!-- ── BANNERS ─────────────────────────────── -->
+      <div class="admin-panel" id="panel-banners">
+        <div class="panel-header">
+          <div class="panel-title">Site <em>Banners</em></div>
+          <button class="btn-teal" onclick="openBannerModal()">＋ New Banner</button>
+        </div>
+
+        <div style="background:#fff;border-radius:14px;padding:20px 24px;margin-bottom:20px;border:1px solid var(--border);">
+          <p style="font-size:0.875rem;color:var(--text-muted);margin-bottom:0;">
+            Banners appear as a coloured strip at the top of your main website and catalogue page.
+            Toggle them on/off anytime. Changes are instant — no page reload needed on the live site.
+          </p>
+        </div>
+
+        <div id="bannerList" style="display:flex;flex-direction:column;gap:12px;">
+          <div style="text-align:center;padding:40px;color:var(--text-muted);font-size:0.9rem;">
+            Loading banners…
+          </div>
+        </div>
+      </div>
+
+      <!-- Banner Create/Edit Modal -->
+      <div id="bannerModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:400;align-items:center;justify-content:center;backdrop-filter:blur(4px);">
+        <div style="background:#fff;border-radius:18px;padding:32px;width:100%;max-width:520px;margin:20px;max-height:90vh;overflow-y:auto;position:relative;">
+          <button onclick="closeBannerModal()" style="position:absolute;top:16px;right:16px;background:transparent;border:none;font-size:1.4rem;cursor:pointer;color:var(--text-muted);">✕</button>
+          <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;margin-bottom:22px;" id="bannerModalTitle">New Banner</h3>
+
+          <div class="field" style="margin-bottom:14px;">
+            <label style="font-weight:600;font-size:0.82rem;color:var(--text-muted);display:block;margin-bottom:6px;">MESSAGE *</label>
+            <input id="bnrText" type="text" placeholder="e.g. 🎉 Flat 20% off on all medicines this weekend!" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.9rem;font-family:'DM Sans',sans-serif;"/>
+          </div>
+
+          <div class="field" style="margin-bottom:14px;">
+            <label style="font-weight:600;font-size:0.82rem;color:var(--text-muted);display:block;margin-bottom:6px;">LINK (optional)</label>
+            <input id="bnrLink" type="text" placeholder="e.g. products-catalogue.html  or  #products" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.9rem;font-family:'DM Sans',sans-serif;"/>
+          </div>
+
+          <div class="field" style="margin-bottom:14px;">
+            <label style="font-weight:600;font-size:0.82rem;color:var(--text-muted);display:block;margin-bottom:6px;">LINK LABEL (optional)</label>
+            <input id="bnrLinkLabel" type="text" placeholder="e.g.  Shop Now →" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.9rem;font-family:'DM Sans',sans-serif;"/>
+          </div>
+
+          <div class="field" style="margin-bottom:14px;">
+            <label style="font-weight:600;font-size:0.82rem;color:var(--text-muted);display:block;margin-bottom:6px;">STYLE</label>
+            <select id="bnrStyle" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.9rem;font-family:'DM Sans',sans-serif;">
+              <option value="teal">🟢 Teal (default)</option>
+              <option value="gold">🟡 Gold / Offer</option>
+              <option value="red">🔴 Urgent / Alert</option>
+              <option value="dark">⚫ Dark / Premium</option>
+            </select>
+          </div>
+
+          <div class="field" style="margin-bottom:20px;">
+            <label style="font-weight:600;font-size:0.82rem;color:var(--text-muted);display:block;margin-bottom:8px;">PREVIEW</label>
+            <div id="bnrPreview" style="border-radius:8px;padding:10px 18px;font-size:0.85rem;text-align:center;font-weight:600;transition:all 0.2s;">Preview will appear here</div>
+          </div>
+
+          <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="closeBannerModal()" style="padding:10px 20px;border:1px solid #ddd;border-radius:8px;background:transparent;cursor:pointer;font-family:'DM Sans',sans-serif;">Cancel</button>
+            <button class="btn-teal" onclick="saveBanner()" id="bnrSaveBtn">💾 Save Banner</button>
+          </div>
+        </div>
+      </div>
+
       <div class="admin-panel" id="panel-settings">
         <div class="panel-header">
           <div class="panel-title">System <em>Settings</em></div>
@@ -3340,6 +3407,149 @@ setInterval(function(){
     mobBadge.textContent = (n && n !== '0') ? n : '';
   }
 }, 1000);
+</script>
+
+<script>
+// ── BANNER MANAGER ────────────────────────────────────────────
+var _bnrEditId = null;
+
+var BNR_STYLES = {
+  teal: { bg:'#00897B', color:'#fff', border:'transparent' },
+  gold: { bg:'#C8A96E', color:'#fff', border:'transparent' },
+  red:  { bg:'#c0392b', color:'#fff', border:'transparent' },
+  dark: { bg:'#060f1e', color:'#E8C98E', border:'rgba(200,169,110,0.3)' }
+};
+
+function getBanners() {
+  try { return JSON.parse(localStorage.getItem('ssb_banners') || '[]'); } catch(e) { return []; }
+}
+function saveBanners(arr) { localStorage.setItem('ssb_banners', JSON.stringify(arr)); }
+
+function renderBannerList() {
+  var list = document.getElementById('bannerList');
+  if (!list) return;
+  var banners = getBanners();
+  if (!banners.length) {
+    list.innerHTML = '<div style="text-align:center;padding:48px 20px;color:var(--text-muted);font-size:0.9rem;background:#fff;border-radius:14px;border:1px solid var(--border);">📢 No banners yet. Click <strong>＋ New Banner</strong> to create one.</div>';
+    return;
+  }
+  list.innerHTML = banners.map(function(b, i) {
+    var st = BNR_STYLES[b.style] || BNR_STYLES.teal;
+    return '<div style="background:#fff;border-radius:14px;border:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">' +
+      '<div style="flex:1;min-width:200px;">' +
+        '<div style="background:' + st.bg + ';color:' + st.color + ';border-radius:8px;padding:8px 16px;font-size:0.83rem;font-weight:600;margin-bottom:10px;text-align:center;">' +
+          escHtml(b.text) + (b.linkLabel ? '  <span style="text-decoration:underline;margin-left:8px;">' + escHtml(b.linkLabel) + '</span>' : '') +
+        '</div>' +
+        '<div style="font-size:0.75rem;color:var(--text-muted);">Style: <strong>' + b.style + '</strong>' + (b.link ? '  ·  Link: <code style="font-size:0.72rem;">' + escHtml(b.link) + '</code>' : '') + '</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">' +
+        '<label style="display:flex;align-items:center;gap:6px;font-size:0.82rem;font-weight:600;cursor:pointer;">' +
+          '<input type="checkbox" ' + (b.active ? 'checked' : '') + ' onchange="toggleBanner(' + i + ',this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:var(--teal);" />' +
+          (b.active ? '<span style="color:var(--success);">Active</span>' : '<span style="color:var(--text-muted);">Off</span>') +
+        '</label>' +
+        '<button onclick="editBanner(' + i + ')" style="padding:6px 14px;border:1px solid var(--border);border-radius:7px;background:transparent;cursor:pointer;font-size:0.8rem;font-family:\'DM Sans\',sans-serif;">✏️ Edit</button>' +
+        '<button onclick="deleteBanner(' + i + ')" style="padding:6px 14px;border:1px solid rgba(192,57,43,0.2);border-radius:7px;background:rgba(192,57,43,0.06);color:var(--danger);cursor:pointer;font-size:0.8rem;font-family:\'DM Sans\',sans-serif;">🗑</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function openBannerModal(editIdx) {
+  _bnrEditId = (editIdx !== undefined) ? editIdx : null;
+  var banners = getBanners();
+  var b = (_bnrEditId !== null) ? banners[_bnrEditId] : null;
+  document.getElementById('bannerModalTitle').textContent = b ? 'Edit Banner' : 'New Banner';
+  document.getElementById('bnrText').value      = b ? b.text : '';
+  document.getElementById('bnrLink').value      = b ? (b.link || '') : '';
+  document.getElementById('bnrLinkLabel').value = b ? (b.linkLabel || '') : '';
+  document.getElementById('bnrStyle').value     = b ? (b.style || 'teal') : 'teal';
+  document.getElementById('bnrSaveBtn').textContent = b ? '💾 Update Banner' : '💾 Save Banner';
+  updateBnrPreview();
+  document.getElementById('bannerModal').style.display = 'flex';
+  document.getElementById('bnrText').addEventListener('input', updateBnrPreview);
+  document.getElementById('bnrStyle').addEventListener('change', updateBnrPreview);
+  document.getElementById('bnrLinkLabel').addEventListener('input', updateBnrPreview);
+}
+
+function updateBnrPreview() {
+  var text  = document.getElementById('bnrText').value || 'Your banner message here';
+  var label = document.getElementById('bnrLinkLabel').value;
+  var style = document.getElementById('bnrStyle').value || 'teal';
+  var st = BNR_STYLES[style] || BNR_STYLES.teal;
+  var prev = document.getElementById('bnrPreview');
+  prev.style.background   = st.bg;
+  prev.style.color        = st.color;
+  prev.style.border       = '1px solid ' + st.border;
+  prev.innerHTML = escHtml(text) + (label ? '  <span style="text-decoration:underline;margin-left:10px;">' + escHtml(label) + '</span>' : '');
+}
+
+function closeBannerModal() {
+  document.getElementById('bannerModal').style.display = 'none';
+  _bnrEditId = null;
+}
+
+function saveBanner() {
+  var text = (document.getElementById('bnrText').value || '').trim();
+  if (!text) { alert('Please enter a banner message.'); return; }
+  var b = {
+    text:      text,
+    link:      (document.getElementById('bnrLink').value || '').trim(),
+    linkLabel: (document.getElementById('bnrLinkLabel').value || '').trim(),
+    style:     document.getElementById('bnrStyle').value || 'teal',
+    active:    true,
+    created:   Date.now()
+  };
+  var banners = getBanners();
+  if (_bnrEditId !== null) {
+    b.active = banners[_bnrEditId].active; // preserve active state on edit
+    banners[_bnrEditId] = b;
+  } else {
+    banners.push(b);
+  }
+  saveBanners(banners);
+  closeBannerModal();
+  renderBannerList();
+  showAdminToast(_bnrEditId !== null ? 'Banner updated!' : 'Banner created!');
+}
+
+function editBanner(i) { openBannerModal(i); }
+
+function deleteBanner(i) {
+  if (!confirm('Delete this banner?')) return;
+  var banners = getBanners();
+  banners.splice(i, 1);
+  saveBanners(banners);
+  renderBannerList();
+  showAdminToast('Banner deleted.');
+}
+
+function toggleBanner(i, active) {
+  var banners = getBanners();
+  banners[i].active = active;
+  saveBanners(banners);
+  renderBannerList();
+  showAdminToast(active ? 'Banner is now live!' : 'Banner hidden.');
+}
+
+function showAdminToast(msg) {
+  var t = document.createElement('div');
+  t.textContent = msg;
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#12202f;color:#fff;padding:10px 22px;border-radius:30px;font-size:0.85rem;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;';
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.opacity='1'; }, 10);
+  setTimeout(function(){ t.style.opacity='0'; setTimeout(function(){ t.remove(); }, 400); }, 2500);
+}
+
+// Init banner panel when shown
+var _origShowPanel = window.showPanel;
+window.showPanel = function(name, el) {
+  _origShowPanel(name, el);
+  if (name === 'banners') renderBannerList();
+};
 </script>
 
 </body>
