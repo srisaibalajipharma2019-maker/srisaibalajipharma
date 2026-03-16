@@ -364,6 +364,29 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   </div>
 </nav>
 
+<!-- Admin-panel banner strip -->
+<div id="catBannerStrip"></div>
+<script>
+(function(){
+  var S={teal:{bg:'#00897B',c:'#fff'},gold:{bg:'#C8A96E',c:'#fff'},red:{bg:'#c0392b',c:'#fff'},dark:{bg:'#060f1e',c:'#E8C98E'}};
+  function e(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+  function render(){
+    var c=document.getElementById('catBannerStrip');
+    if(!c)return;
+    try{
+      var list=JSON.parse(localStorage.getItem('ssb_banners')||'[]');
+      var active=list.filter(function(b){return b.active;});
+      if(!active.length){c.innerHTML='';return;}
+      var b=active[0],st=S[b.style]||S.teal;
+      var html=e(b.text);
+      if(b.link&&b.linkLabel){html+=' &nbsp;<a href="'+e(b.link)+'" style="color:inherit;font-weight:700;text-decoration:underline;">'+e(b.linkLabel)+'</a>';}
+      c.innerHTML='<div style="background:'+st.bg+';color:'+st.c+';padding:10px 5%;font-size:0.85rem;font-weight:600;text-align:center;position:relative;border-bottom:1px solid rgba(0,0,0,0.1);">'+html+'<button onclick="this.parentNode.remove()" style="position:absolute;right:16px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:inherit;font-size:1rem;cursor:pointer;opacity:0.7;">&#x2715;</button></div>';
+    }catch(e){c.innerHTML='';}
+  }
+  document.addEventListener('DOMContentLoaded',function(){render();setInterval(render,4000);});
+})();
+</script>
+
 <div class="hero">
   <h1>Full Product <em>Catalogue</em></h1>
   <p>Browse our complete range of medicines and healthcare products</p>
