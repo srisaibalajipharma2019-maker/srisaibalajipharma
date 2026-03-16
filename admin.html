@@ -1685,8 +1685,8 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
             <h3>📊 Database Info</h3>
             <p>Your current JSONBin database connection details</p>
             <div style="font-size:0.82rem;color:var(--text-muted);display:flex;flex-direction:column;gap:10px;">
-              <div><strong style="color:var(--text);">Products Bin ID:</strong><br><code id="setProductsBin" style="font-size:0.75rem;background:#f0f4f8;padding:3px 7px;border-radius:4px;color:var(--teal);">Loading…</code></div>
-              <div><strong style="color:var(--text);">Services Bin ID:</strong><br><code id="setServicesBin" style="font-size:0.75rem;background:#f0f4f8;padding:3px 7px;border-radius:4px;color:var(--teal);">Loading…</code></div>
+              <div><strong style="color:var(--text);">Cloud Bin ID:</strong><br><code id="setProductsBin" style="font-size:0.75rem;background:#f0f4f8;padding:3px 7px;border-radius:4px;color:var(--teal);">Not connected</code></div>
+              <div><strong style="color:var(--text);">Storage:</strong><br><code id="setServicesBin" style="font-size:0.75rem;background:#f0f4f8;padding:3px 7px;border-radius:4px;color:var(--teal);">localStorage (offline)</code></div>
               <div><strong style="color:var(--text);">Rx Records:</strong> <span id="setRxCount">—</span> total</div>
               <div><strong style="color:var(--text);">Video Records:</strong> <span id="setVidCount">—</span> total</div>
             </div>
@@ -1714,6 +1714,70 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
             </div>
           </div>
         </div>
+
+  
+          <div class="setting-card" style="grid-column:1/-1;">
+            <h3>☁️ JSONBin Cloud Sync</h3>
+            <p>Connect to JSONBin so your products, services and banners sync to the cloud — visible to customers on any device.</p>
+            <div id="jbConfigStatus" style="font-size:0.85rem;margin-bottom:16px;padding:10px 14px;background:#f8fafc;border-radius:8px;border:1px solid var(--border);">Checking…</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+              <div class="field">
+                <label>API Master Key</label>
+                <input type="password" id="jbApiKey" placeholder="$2a$10$…" autocomplete="off"/>
+              </div>
+              <div class="field">
+                <label>Bin ID <span style="font-weight:400;text-transform:none;">(leave blank to auto-create)</span></label>
+                <input type="text" id="jbBinId" placeholder="auto-created on first save"/>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <button class="btn-teal" onclick="jbSaveConfig()">💾 Save &amp; Connect</button>
+              <button class="btn-sm" id="jbPullBtn" onclick="jbPullNow()">⬇️ Pull from Cloud</button>
+              <button class="btn-sm" onclick="jbPush()">⬆️ Push to Cloud</button>
+              <button class="btn-sm danger" onclick="jbClearConfig()">✕ Disconnect</button>
+              <span id="jbSyncStatus" style="font-size:0.82rem;"></span>
+            </div>
+            <div style="margin-top:16px;padding:12px 16px;background:rgba(0,137,123,0.05);border-radius:8px;border:1px solid rgba(0,137,123,0.15);font-size:0.8rem;color:var(--text-muted);line-height:1.9;">
+              <strong style="color:var(--text);font-size:0.82rem;">How to get your free API key:</strong><br>
+              1. Go to <a href="https://jsonbin.io" target="_blank" style="color:var(--teal);font-weight:600;">jsonbin.io</a> → Sign up free (no credit card needed)<br>
+              2. Click your profile icon → <strong>API Keys</strong> → copy the <strong>Master Key</strong><br>
+              3. Paste it in the field above → click <strong>Save &amp; Connect</strong><br>
+              4. Done! Every product/service/banner save now auto-syncs ☁️
+            </div>
+          </div>
+            <p>Connect to JSONBin so your products, services and banners sync to the cloud — visible to customers on any device.</p>
+
+            <div id="jbConfigStatus" style="font-size:0.85rem;margin-bottom:16px;padding:10px 14px;background:#f8fafc;border-radius:8px;border:1px solid var(--border);">Checking…</div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+              <div class="field">
+                <label>API Master Key</label>
+                <input type="password" id="jbApiKey" placeholder="$2a$10$…" autocomplete="off"/>
+              </div>
+              <div class="field">
+                <label>Bin ID <span style="font-weight:400;text-transform:none;">(leave blank to auto-create)</span></label>
+                <input type="text" id="jbBinId" placeholder="auto-created on first save"/>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <button class="btn-teal" onclick="jbSaveConfig()">💾 Save & Connect</button>
+              <button class="btn-sm" id="jbPullBtn" onclick="jbPullNow()">⬇️ Pull from Cloud</button>
+              <button class="btn-sm" onclick="jbPush()">⬆️ Push to Cloud</button>
+              <button class="btn-sm danger" onclick="jbClearConfig()">✕ Disconnect</button>
+              <span id="jbSyncStatus" style="font-size:0.82rem;"></span>
+            </div>
+
+            <div style="margin-top:16px;padding:12px 16px;background:rgba(0,137,123,0.05);border-radius:8px;border:1px solid rgba(0,137,123,0.15);font-size:0.8rem;color:var(--text-muted);line-height:1.8;">
+              <strong style="color:var(--text);">How to get your free API key:</strong><br>
+              1. Go to <a href="https://jsonbin.io" target="_blank" style="color:var(--teal);">jsonbin.io</a> → Sign up free<br>
+              2. Click your profile → <strong>API Keys</strong> → copy the <strong>Master Key</strong><br>
+              3. Paste it above → click <strong>Save &amp; Connect</strong><br>
+              4. Done! Every save auto-syncs to the cloud ☁️
+            </div>
+          </div>
+
+      </div>
       </div>
 
       <!-- ── CATEGORIES ─────────────────────────────── -->
@@ -1919,6 +1983,65 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
 <script>
 'use strict';
 
+/* ── JSONBin cloud sync ─────────────────────────────────────────────
+   Single bin holds: { products, services, catalog, banners }
+   Keys stored in localStorage:
+     ssb_jb_key  = Master API key from jsonbin.io
+     ssb_jb_bin  = Bin ID (created automatically on first save)
+   ──────────────────────────────────────────────────────────────────── */
+var JB = (function(){
+  var BASE = 'https://api.jsonbin.io/v3/b';
+  function key(){ return localStorage.getItem('ssb_jb_key')||''; }
+  function bin(){ return localStorage.getItem('ssb_jb_bin')||''; }
+
+  function headers(write){
+    var h = {'Content-Type':'application/json','X-Master-Key':key()};
+    if(!write) h['X-Bin-Private']='false';
+    return h;
+  }
+
+  return {
+    configured: function(){ return !!(key() && bin()); },
+    keyOnly:    function(){ return !!key(); },
+
+    /* Read entire record from cloud */
+    read: async function(){
+      if(!key()||!bin()) return null;
+      try{
+        var r = await fetch(BASE+'/'+bin()+'/latest',{headers:headers(false)});
+        if(!r.ok) return null;
+        var j = await r.json();
+        return j.record || null;
+      }catch(e){ return null; }
+    },
+
+    /* Write entire record to cloud */
+    write: async function(record){
+      if(!key()) return false;
+      try{
+        var b = bin();
+        if(b){
+          var r = await fetch(BASE+'/'+b,{method:'PUT',headers:headers(true),body:JSON.stringify(record)});
+          return r.ok;
+        } else {
+          /* Create new bin */
+          var r = await fetch(BASE,{method:'POST',headers:Object.assign(headers(true),{'X-Bin-Name':'SSB-Pharma'}),body:JSON.stringify(record)});
+          if(!r.ok) return false;
+          var j = await r.json();
+          var newId = j.metadata && j.metadata.id;
+          if(newId){ localStorage.setItem('ssb_jb_bin', newId); return true; }
+          return false;
+        }
+      }catch(e){ return false; }
+    },
+
+    setKey: function(k){ localStorage.setItem('ssb_jb_key', k.trim()); },
+    setBin: function(b){ localStorage.setItem('ssb_jb_bin', b.trim()); },
+    getBin: function(){ return bin(); },
+    getKey: function(){ return key(); }
+  };
+})();
+
 // ── CONFIG ─────────────────────────────────────────────────
 var ADMIN_PASSWORD_KEY = 'ssb_admin_pwd';
 var ADMIN_PASSWORD     = localStorage.getItem(ADMIN_PASSWORD_KEY) || 'admin123';
@@ -1927,11 +2050,17 @@ var ADMIN_PASSWORD     = localStorage.getItem(ADMIN_PASSWORD_KEY) || 'admin123';
 function lsGetProducts() {
   try { var d = localStorage.getItem('ssb_products'); return d ? JSON.parse(d) : null; } catch(e) { return null; }
 }
-function lsSaveProducts(arr) { localStorage.setItem('ssb_products', JSON.stringify(arr)); }
+function lsSaveProducts(arr) {
+  localStorage.setItem('ssb_products', JSON.stringify(arr));
+  jbPush();
+}
 function lsGetServices() {
   try { var d = localStorage.getItem('ssb_services'); return d ? JSON.parse(d) : null; } catch(e) { return null; }
 }
-function lsSaveServices(arr) { localStorage.setItem('ssb_services', JSON.stringify(arr)); }
+function lsSaveServices(arr) {
+  localStorage.setItem('ssb_services', JSON.stringify(arr));
+  jbPush();
+}
 
 
 var defaultProducts = [
@@ -2047,6 +2176,11 @@ function initAdminData() {
   var expEl = document.getElementById('expiryAlertBox');
   if (expEl) { expEl.style.display=(expiredCount||expSoonCount)?'block':'none'; expEl.innerHTML = (expiredCount?'<span style="color:#c0392b;font-weight:700;">⚠️ '+expiredCount+' product(s) EXPIRED</span><br>':'') + (expSoonCount?'<span style="color:#b7770d;font-weight:700;">⏳ '+expSoonCount+' product(s) expiring within 90 days</span>':''); }
   document.getElementById('setVidCount').textContent = loadVids().length;
+  jbRenderStatus();
+  var binEl = document.getElementById('setProductsBin');
+  if (binEl) { var b=JB.getBin(); binEl.textContent = b || 'Not connected'; }
+  var stEl = document.getElementById('setServicesBin');
+  if (stEl) { stEl.textContent = JB.configured() ? 'JSONBin cloud ☁️' : 'localStorage (offline)'; }
 }
 
 
@@ -2762,7 +2896,10 @@ function catLoad() {
   try { return JSON.parse(localStorage.getItem(CAT_KEY) || '[]'); } catch(e) { return []; }
 }
 
-function catSave(arr) { localStorage.setItem(CAT_KEY, JSON.stringify(arr)); }
+function catSave(arr) {
+  localStorage.setItem(CAT_KEY, JSON.stringify(arr));
+  jbPush();
+}
 
 var CAT_MAP_ADMIN = {
   'OTC': 'Gastro', 'Prescription': 'Antibiotics', 'Pain Relief': 'Gastro',
@@ -3355,6 +3492,90 @@ function clearProductImage(urlFieldId, previewId) {
 })();
 </script>
 
+
+// ── JSONBIN PUSH ────────────────────────────────────────────────────
+var _jbPushTimer = null;
+function jbPush() {
+  // Debounce: wait 1.5s after last change before pushing
+  clearTimeout(_jbPushTimer);
+  _jbPushTimer = setTimeout(async function(){
+    if (!JB.configured()) return;
+    var record = {
+      products: lsGetProducts() || [],
+      services: (function(){ try{ return JSON.parse(localStorage.getItem('ssb_services')||'[]'); }catch(e){ return []; } })(),
+      catalog:  (function(){ try{ return JSON.parse(localStorage.getItem('ssb_catalog')||'[]');  }catch(e){ return []; } })(),
+      banners:  (function(){ try{ return JSON.parse(localStorage.getItem('ssb_banners')||'[]');  }catch(e){ return []; } })(),
+      categories: (function(){ try{ return JSON.parse(localStorage.getItem('ssb_categories')||'[]'); }catch(e){ return []; } })()
+    };
+    var ok = await JB.write(record);
+    var el = document.getElementById('jbSyncStatus');
+    if (el) {
+      el.textContent = ok ? '✅ Synced to cloud' : '⚠️ Sync failed — check API key';
+      el.style.color  = ok ? 'var(--success)' : 'var(--danger)';
+      setTimeout(function(){ if(el) el.textContent = ''; }, 4000);
+    }
+  }, 1500);
+}
+
+// ── JSONBIN SETTINGS UI ─────────────────────────────────────────────
+function jbSaveConfig() {
+  var k = (document.getElementById('jbApiKey').value || '').trim();
+  var b = (document.getElementById('jbBinId').value  || '').trim();
+  if (!k) { alert('Please enter your API key.'); return; }
+  JB.setKey(k);
+  if (b) JB.setBin(b);
+  jbRenderStatus();
+  // Immediately push everything
+  jbPush();
+  showAdminToast('JSONBin configured! Pushing data now…');
+}
+
+function jbClearConfig() {
+  if (!confirm('Remove JSONBin config? Data stays in localStorage but won\'t sync to cloud.')) return;
+  localStorage.removeItem('ssb_jb_key');
+  localStorage.removeItem('ssb_jb_bin');
+  jbRenderStatus();
+}
+
+async function jbPullNow() {
+  if (!JB.configured()) { alert('Configure JSONBin first.'); return; }
+  var el = document.getElementById('jbPullBtn');
+  if (el) el.textContent = '⏳ Pulling…';
+  var record = await JB.read();
+  if (!record) {
+    if (el) el.textContent = '⬇️ Pull from Cloud';
+    alert('Could not read from JSONBin. Check your API key and Bin ID.');
+    return;
+  }
+  if (record.products  && Array.isArray(record.products))   { localStorage.setItem('ssb_products',   JSON.stringify(record.products));   products = record.products; }
+  if (record.services  && Array.isArray(record.services))   { localStorage.setItem('ssb_services',   JSON.stringify(record.services));   services = record.services; }
+  if (record.catalog   && Array.isArray(record.catalog))    { localStorage.setItem('ssb_catalog',    JSON.stringify(record.catalog));    catalogProducts = record.catalog; }
+  if (record.banners   && Array.isArray(record.banners))    { localStorage.setItem('ssb_banners',    JSON.stringify(record.banners)); }
+  if (record.categories && Array.isArray(record.categories)){ localStorage.setItem('ssb_categories', JSON.stringify(record.categories)); }
+  renderProductsAdmin();
+  renderServicesAdmin();
+  renderDashboard();
+  renderCatalog();
+  updateSidebarBadges();
+  if (el) el.textContent = '⬇️ Pull from Cloud';
+  showAdminToast('✅ Data pulled from cloud successfully!');
+}
+
+function jbRenderStatus() {
+  var k    = JB.getKey();
+  var b    = JB.getBin();
+  var kEl  = document.getElementById('jbApiKey');
+  var bEl  = document.getElementById('jbBinId');
+  var stEl = document.getElementById('jbConfigStatus');
+  if (kEl) kEl.value = k ? k.substring(0,12)+'…' : '';
+  if (bEl) bEl.value = b || '';
+  if (stEl) {
+    if (k && b)      { stEl.innerHTML = '<span style="color:var(--success);">✅ Connected — Bin ID: <code style="font-size:0.75rem;background:#f0f4f8;padding:2px 6px;border-radius:4px;">'+b+'</code></span>'; }
+    else if (k && !b){ stEl.innerHTML = '<span style="color:var(--gold);">🔑 Key saved — will create bin on first save</span>'; }
+    else             { stEl.innerHTML = '<span style="color:var(--text-muted);">Not configured — data stays local only</span>'; }
+  }
+}
+
 <!-- MOBILE BOTTOM NAV (visible only on mobile) -->
 <nav class="mobile-admin-nav" id="mobileAdminNav">
   <button class="mob-nav-btn active" id="mobn-dashboard" onclick="showPanel('dashboard',null);mobileNavActive('dashboard')">
@@ -3413,7 +3634,10 @@ var BNR_STYLES = {
 function getBanners() {
   try { return JSON.parse(localStorage.getItem('ssb_banners') || '[]'); } catch(e) { return []; }
 }
-function saveBanners(arr) { localStorage.setItem('ssb_banners', JSON.stringify(arr)); }
+function saveBanners(arr) {
+  localStorage.setItem('ssb_banners', JSON.stringify(arr));
+  jbPush();
+}
 
 function renderBannerList() {
   var list = document.getElementById('bannerList');
