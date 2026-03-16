@@ -506,21 +506,46 @@ function migrateProducts(list) {
   return changed;
 }
 
-function loadProducts() {
+function loadFromLocal() {
   try {
     var catalog  = localStorage.getItem('ssb_catalog');
     var fallback = localStorage.getItem('ssb_products');
     products = catalog ? JSON.parse(catalog) : (fallback ? JSON.parse(fallback) : defaultProducts);
     if (!Array.isArray(products) || !products.length) products = defaultProducts;
-  } catch(e) {
-    products = defaultProducts;
-  }
-  /* Run migration and persist if anything changed */
+  } catch(e) { products = defaultProducts; }
   var didChange = migrateProducts(products);
-  if (didChange) {
-    try { localStorage.setItem('ssb_catalog', JSON.stringify(products)); } catch(e) {}
-  }
+  if (didChange) { try { localStorage.setItem('ssb_catalog', JSON.stringify(products)); } catch(e) {} }
   applyFilters();
+}
+
+async function loadProducts() {
+  var jbKey = localStorage.getItem('ssb_jb_key');
+  var jbBin = localStorage.getItem('ssb_jb_bin');
+  if (jbKey && jbBin) {
+    try {
+      var r = await fetch('https://api.jsonbin.io/v3/b/' + jbBin + '/latest', {
+        headers: { 'X-Master-Key': jbKey, 'X-Bin-Private': 'false' }
+      });
+      if (r.ok) {
+        var j = await r.json();
+        var rec = j.record || {};
+        var list = (rec.catalog && rec.catalog.length) ? rec.catalog : (rec.products && rec.products.length ? rec.products : null);
+        if (list) {
+          products = list;
+          localStorage.setItem('ssb_catalog', JSON.stringify(list));
+        }
+        if (rec.banners)    localStorage.setItem('ssb_banners',    JSON.stringify(rec.banners));
+        if (rec.categories) localStorage.setItem('ssb_categories', JSON.stringify(rec.categories));
+        if (!Array.isArray(products)||!products.length) products = defaultProducts;
+        var didChange = migrateProducts(products);
+        if (didChange) { try { localStorage.setItem('ssb_catalog', JSON.stringify(products)); } catch(e) {} }
+        buildFilterBtns();
+        applyFilters();
+        return;
+      }
+    } catch(e) { /* fall through */ }
+  }
+  loadFromLocal();
 }
 
 function setCategory(cat, btn) {
@@ -777,7 +802,7 @@ function buildFilterBtns() {
 
 // Load products on page ready
 buildFilterBtns();
-loadProducts();
+loadProducts();  // async — fetches from JSONBin if configured
 </script>
 </body>
 </html>
