@@ -1217,16 +1217,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
           <div class="form-grid">
             <div class="field"><label>Product Name *</label><input type="text" id="pName" placeholder="e.g. Paracetamol 500mg"/></div>
             <div class="field"><label>Category *</label>
-              <select id="pCat">
-                <option value="">Select category</option>
-                <option>Antibiotics</option><option>Cardiac</option><option>Diabetes</option>
-                <option>Neurological</option><option>Gastro</option><option>Respiratory</option>
-                <option>Vitamins</option><option>Ayurvedic</option><option>Baby Care</option>
-                <option>Surgical</option><option>Derma</option><option>Oncology</option>
-                <option>Orthopaedic</option><option>Eye Care</option><option>ENT</option>
-                <option>Hormones</option><option>Psychiatry</option><option>Anti Coagulant</option>
-                <option>Nutrition</option>
-              </select>
+              <select id="pCat"><option value="">Select category</option></select>
             </div>
             <div class="field"><label>Base Price (₹) *</label><input type="number" id="pPrice" placeholder="0.00"/></div>
             <div class="field"><label>Stock Qty</label><input type="number" id="pStock" placeholder="0"/></div>
@@ -1564,16 +1555,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
               <div class="field"><label>Discount %</label><input type="number" id="catFDiscount" placeholder="0" min="0" max="100" oninput="catCalcDiscount()"></div>
               <div class="field"><label>Discounted Price (₹)</label><input type="number" id="catFDiscPrice" placeholder="Auto-calculated" step="0.01" oninput="catCalcDiscountReverse()"></div>
               <div class="field"><label>Category</label>
-                <select id="catFCategory">
-                  <option value="">Select category</option>
-                  <option>Antibiotics</option><option>Cardiac</option><option>Diabetes</option>
-                  <option>Neurological</option><option>Gastro</option><option>Respiratory</option>
-                  <option>Vitamins</option><option>Ayurvedic</option><option>Baby Care</option>
-                  <option>Surgical</option><option>Derma</option><option>Oncology</option>
-                  <option>Orthopaedic</option><option>Eye Care</option><option>ENT</option>
-                  <option>Hormones</option><option>Psychiatry</option><option>Anti Coagulant</option>
-                  <option>Nutrition</option>
-                </select>
+                <select id="catFCategory"><option value="">Select category</option></select>
               </div>
               <div class="field"><label>Prescription Required?</label>
                 <select id="catFRx">
@@ -1884,7 +1866,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
       <div class="form-grid">
         <div class="field"><label>Name</label><input type="text" id="epName"/></div>
         <div class="field"><label>Category</label>
-          <select id="epCat"><option>Antibiotics</option><option>Cardiac</option><option>Diabetes</option><option>Neurological</option><option>Gastro</option><option>Respiratory</option><option>Vitamins</option><option>Ayurvedic</option><option>Baby Care</option><option>Surgical</option><option>Derma</option><option>Oncology</option><option>Orthopaedic</option><option>Eye Care</option><option>ENT</option><option>Hormones</option><option>Psychiatry</option><option>Anti Coagulant</option><option>Nutrition</option></select>
+          <select id="epCat"><option value="">Select category</option></select>
         </div>
         <div class="field"><label>Price (₹)</label><input type="number" id="epPrice"/></div>
         <div class="field"><label>Stock</label><input type="number" id="epStock"/></div>
@@ -2017,7 +1999,8 @@ document.getElementById('loginPwd').focus && setTimeout(function(){
 function showPanel(name, btn) {
   document.querySelectorAll('.admin-panel').forEach(function(p){ p.classList.remove('active'); });
   document.querySelectorAll('.sidebar-link').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById('panel-' + name).classList.add('active');
+  var panelEl = document.getElementById('panel-' + name);
+  if (panelEl) panelEl.classList.add('active');
   if (btn) btn.classList.add('active');
 
   if (name === 'products')   renderProductsAdmin();
@@ -2027,6 +2010,10 @@ function showPanel(name, btn) {
   if (name === 'videos')     renderVideosAdmin();
   if (name === 'dashboard')  renderDashboard();
   if (name === 'categories') renderCategoryPanel();
+  if (name === 'banners')    renderBannerList();
+
+  // Sync mobile nav
+  if (typeof mobileNavActive === 'function') mobileNavActive(name);
 }
 
 // ── SAVE HELPERS (localStorage) ────────────────────────────
@@ -2621,6 +2608,9 @@ var _avPendingFile = null;
 window.adminHandleVideoFile = function(file) {
   if (!file.type.startsWith('video/')) { alert('Please select a valid video file (MP4, WebM, MOV).'); return; }
   if (file.size > 200 * 1024 * 1024) { alert('File is too large. Maximum size is 200 MB.'); return; }
+  if (file.size > 5 * 1024 * 1024) {
+    if (!confirm('⚠️ This video is ' + (file.size/1024/1024).toFixed(1) + ' MB.\n\nVideos are stored in browser localStorage which has a ~5-10 MB limit. Large videos may fail to save or cause other data to be lost.\n\nFor best results, use YouTube/Vimeo links instead.\n\nContinue anyway?')) return;
+  }
   _avPendingFile = file;
   // Auto-fill title
   var titleEl = document.getElementById('avUploadTitle');
@@ -3235,11 +3225,16 @@ function saveRename(idx) {
     showCatMsg('⚠️ "' + newName + '" already exists.', 'orange'); return;
   }
 
-  // Also rename in all saved products
+  // Also rename in full catalog (ssb_catalog)
   var prods = catLoad();
   prods.forEach(function(p){ if (p.category === oldName) p.category = newName; });
   catSave(prods);
   catalogProducts = prods;
+  // Also rename in products list (ssb_products)
+  var mainProds = lsGetProducts() || [];
+  mainProds.forEach(function(p){ if (p.category === oldName) p.category = newName; });
+  lsSaveProducts(mainProds);
+  products = mainProds;
 
   cats[idx].name  = newName;
   cats[idx].emoji = newEmoji;
@@ -3392,12 +3387,7 @@ function mobileNavActive(panelId) {
   if (btn) btn.classList.add('active');
 }
 // Sync mobile badge with Rx count
-var _origUpdateBadges = window.updateSidebarBadges;
-var _origShowPanel = window.showPanel;
-window.showPanel = function(id, el) {
-  if (_origShowPanel) _origShowPanel(id, el);
-  mobileNavActive(id);
-};
+// showPanel already calls mobileNavActive() directly
 // Update Rx badge on mobile nav
 setInterval(function(){
   var badge = document.getElementById('sbRxNew');
@@ -3544,12 +3534,7 @@ function showAdminToast(msg) {
   setTimeout(function(){ t.style.opacity='0'; setTimeout(function(){ t.remove(); }, 400); }, 2500);
 }
 
-// Init banner panel when shown
-var _origShowPanel = window.showPanel;
-window.showPanel = function(name, el) {
-  _origShowPanel(name, el);
-  if (name === 'banners') renderBannerList();
-};
+// renderBannerList is called directly from showPanel above
 </script>
 
 </body>
