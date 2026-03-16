@@ -3519,13 +3519,33 @@ function jbPush() {
 function jbSaveConfig() {
   var k = (document.getElementById('jbApiKey').value || '').trim();
   var b = (document.getElementById('jbBinId').value  || '').trim();
-  if (!k) { alert('Please enter your API key.'); return; }
-  JB.setKey(k);
+  // Only update key if user typed a real new one (not blank, not placeholder)
+  if (k && k.indexOf('…') === -1 && k !== 'Key saved') {
+    JB.setKey(k);
+    document.getElementById('jbApiKey').value = '';
+  } else if (!JB.keyOnly()) {
+    alert('Please paste your API Master Key from jsonbin.io'); return;
+  }
   if (b) JB.setBin(b);
   jbRenderStatus();
-  // Immediately push everything
-  jbPush();
-  showAdminToast('JSONBin configured! Pushing data now…');
+  // Force push immediately
+  var _timer = _jbPushTimer;
+  clearTimeout(_jbPushTimer);
+  (async function(){
+    if(!JB.keyOnly()) return;
+    var record = {
+      products:   lsGetProducts() || [],
+      services:   (function(){ try{ return JSON.parse(localStorage.getItem('ssb_services')||'[]'); }catch(e){ return []; } })(),
+      catalog:    (function(){ try{ return JSON.parse(localStorage.getItem('ssb_catalog')||'[]');  }catch(e){ return []; } })(),
+      banners:    (function(){ try{ return JSON.parse(localStorage.getItem('ssb_banners')||'[]');  }catch(e){ return []; } })(),
+      categories: (function(){ try{ return JSON.parse(localStorage.getItem('ssb_categories')||'[]'); }catch(e){ return []; } })()
+    };
+    var ok = await JB.write(record);
+    var el = document.getElementById('jbSyncStatus');
+    if(el){ el.textContent = ok ? '✅ Synced to cloud!' : '⚠️ Sync failed — check API key'; el.style.color = ok ? 'var(--success)' : 'var(--danger)'; setTimeout(function(){ if(el) el.textContent=''; },5000); }
+    if(ok) jbRenderStatus();
+  })();
+  showAdminToast('Connecting to JSONBin…');
 }
 
 function jbClearConfig() {
@@ -3566,7 +3586,8 @@ function jbRenderStatus() {
   var kEl  = document.getElementById('jbApiKey');
   var bEl  = document.getElementById('jbBinId');
   var stEl = document.getElementById('jbConfigStatus');
-  if (kEl) kEl.value = k ? k.substring(0,12)+'…' : '';
+  // Don't put masked key into input - leave blank so user can re-enter if needed
+  if (kEl && !kEl.value) kEl.placeholder = k ? 'Key saved ✓ (paste new key to change)' : '$2a$10$…';
   if (bEl) bEl.value = b || '';
   if (stEl) {
     if (k && b)      { stEl.innerHTML = '<span style="color:var(--success);">✅ Connected — Bin ID: <code style="font-size:0.75rem;background:#f0f4f8;padding:2px 6px;border-radius:4px;">'+b+'</code></span>'; }
