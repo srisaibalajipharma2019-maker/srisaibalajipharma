@@ -2093,7 +2093,7 @@ function doLogin() {
   var err = document.getElementById('loginError');
   err.classList.remove('show');
   if (pwd === ADMIN_PASSWORD) {
-    sessionStorage.setItem('ssb_admin_session', '1');
+    localStorage.setItem('ssb_admin_session', '1');
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminScreen').style.display = 'block';
     initAdminData();
@@ -2105,7 +2105,7 @@ function doLogin() {
 
 function doLogout() {
   if (!confirm('Sign out of admin panel?')) return;
-  sessionStorage.removeItem('ssb_admin_session');
+  localStorage.removeItem('ssb_admin_session');
   document.getElementById('adminScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('loginPwd').value = '';
@@ -2113,7 +2113,7 @@ function doLogout() {
 
 // Auto-check session on load
 (function() {
-  if (sessionStorage.getItem('ssb_admin_session') === '1') {
+  if (localStorage.getItem('ssb_admin_session') === '1') {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminScreen').style.display = 'block';
     initAdminData();
@@ -2151,13 +2151,31 @@ function saveServices() { lsSaveServices(services); }
 
 // ── INIT DATA ──────────────────────────────────────────────
 function initAdminData() {
+  // Load from localStorage first so UI shows immediately
   products = lsGetProducts() || defaultProducts;
   services = lsGetServices() || defaultServices;
   if (!Array.isArray(products) || !products.length) products = defaultProducts;
   if (!Array.isArray(services) || !services.length) services = defaultServices;
-  // Ensure defaults saved so index.html can always read them
-  lsSaveProducts(products);
-  lsSaveServices(services);
+
+  // Then pull from JSONBin cloud in background to get latest data
+  if (JB.configured()) {
+    JB.read().then(function(record) {
+      if (!record) return;
+      if (record.catalog   && Array.isArray(record.catalog)   && record.catalog.length)   { localStorage.setItem('ssb_catalog',    JSON.stringify(record.catalog));    catalogProducts = record.catalog; }
+      if (record.products  && Array.isArray(record.products)  && record.products.length)  { localStorage.setItem('ssb_products',   JSON.stringify(record.products));   products = record.products; }
+      if (record.services  && Array.isArray(record.services)  && record.services.length)  { localStorage.setItem('ssb_services',   JSON.stringify(record.services));   services = record.services; }
+      if (record.banners   && Array.isArray(record.banners))                              { localStorage.setItem('ssb_banners',    JSON.stringify(record.banners)); }
+      if (record.categories && Array.isArray(record.categories))                          { localStorage.setItem('ssb_categories', JSON.stringify(record.categories)); }
+      // Re-render everything with fresh cloud data
+      updateSidebarBadges();
+      renderProductsAdmin();
+      renderServicesAdmin();
+      renderDashboard();
+      renderCatalog();
+      updateCatalogBadge();
+      refreshAllCategoryDropdowns();
+    }).catch(function(){});
+  }
 
   updateSidebarBadges();
   renderProductsAdmin();
