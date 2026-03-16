@@ -3218,43 +3218,7 @@
   let adminLoggedIn = false;
   let serviceAdminLoggedIn = false;
 
-  // ====== JSONBIN CONFIG ======
-  const API_KEY = '$2a$10$.vqm8sTBuySEzVNKF1kB6e8FtZFocZVqo.PBbGHQ4rZYhLNgumat2';
-  const BASE_URL = 'https://api.jsonbin.io/v3/b';
-  const HEADERS = {
-    'Content-Type': 'application/json',
-    'X-Master-Key': API_KEY,
-    'X-Bin-Private': 'false'
-  };
-
-  // Bin IDs stored in localStorage so we don't recreate bins
-  let PRODUCTS_BIN = localStorage.getItem('ssb_products_bin') || null;
-  let SERVICES_BIN = localStorage.getItem('ssb_services_bin') || null;
-
-  // ====== JSONBIN HELPERS ======
-  async function binGet(binId) {
-    const res = await fetch(BASE_URL + '/' + binId + '/latest', { headers: { 'X-Master-Key': API_KEY } });
-    const data = await res.json();
-    return data.record;
-  }
-
-  async function binUpdate(binId, data) {
-    await fetch(BASE_URL + '/' + binId, {
-      method: 'PUT',
-      headers: HEADERS,
-      body: JSON.stringify(data)
-    });
-  }
-
-  async function binCreate(data) {
-    const res = await fetch(BASE_URL, {
-      method: 'POST',
-      headers: HEADERS,
-      body: JSON.stringify(data)
-    });
-    const json = await res.json();
-    return json.metadata.id;
-  }
+  // JSONBin config now handled via JB module (ssb_jb_key / ssb_jb_bin in localStorage)
 
   // ====== RX & CATEGORY MIGRATION ======
   const CAT_MAP_IDX = {
@@ -3276,22 +3240,15 @@
     return changed;
   }
 
-  // ====== INIT: Load from localStorage ======
-  function initData() {
+  // ====== INIT: Load from JSONBin cloud, fall back to localStorage ======
+  function loadFromLocal() {
     try {
-      // Load from Full Catalog (admin panel import) first, then fallback to ssb_products, then defaults
-      var catalogData  = localStorage.getItem('ssb_catalog');
+      var catalogData   = localStorage.getItem('ssb_catalog');
       var savedProducts = localStorage.getItem('ssb_products');
       var savedServices = localStorage.getItem('ssb_services');
-
-      if (catalogData) {
-        products = JSON.parse(catalogData);
-      } else if (savedProducts) {
-        products = JSON.parse(savedProducts);
-      } else {
-        products = defaultProducts;
-      }
-
+      if (catalogData)       products = JSON.parse(catalogData);
+      else if (savedProducts) products = JSON.parse(savedProducts);
+      else                    products = defaultProducts;
       services = savedServices ? JSON.parse(savedServices) : defaultServices;
       if (!Array.isArray(products) || !products.length) products = defaultProducts;
       if (!Array.isArray(services) || !services.length) services = defaultServices;
@@ -3299,7 +3256,6 @@
       products = defaultProducts;
       services = defaultServices;
     }
-    // Run migration — force Rx=Yes and remap old categories
     if (migrateIndexProducts(products)) {
       try { localStorage.setItem('ssb_catalog', JSON.stringify(products)); } catch(e) {}
     }
@@ -3308,9 +3264,42 @@
     renderServices();
   }
 
-  // Helpers kept for compatibility
-  async function binUpdate(binId, data) {
-    localStorage.setItem('ssb_catalog', JSON.stringify(data));
+  async function initData() {
+    // Show skeletons while loading
+    var pg = document.getElementById('productsGrid');
+    if (pg) {
+      var sk=''; for(var i=0;i<6;i++) sk+='<div class="skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton-body"><div class="skeleton skeleton-line medium"></div><div class="skeleton skeleton-line short"></div></div></div>';
+      pg.innerHTML=sk;
+    }
+
+    // Try cloud first
+    var jbKey = localStorage.getItem('ssb_jb_key');
+    var jbBin = localStorage.getItem('ssb_jb_bin');
+    if (jbKey && jbBin) {
+      try {
+        var r = await fetch('https://api.jsonbin.io/v3/b/' + jbBin + '/latest', {
+          headers: { 'X-Master-Key': jbKey, 'X-Bin-Private': 'false' }
+        });
+        if (r.ok) {
+          var j = await r.json();
+          var rec = j.record || {};
+          if (rec.catalog   && Array.isArray(rec.catalog)   && rec.catalog.length)   { products = rec.catalog;   localStorage.setItem('ssb_catalog',    JSON.stringify(rec.catalog)); }
+          else if (rec.products && Array.isArray(rec.products) && rec.products.length){ products = rec.products;  localStorage.setItem('ssb_products',   JSON.stringify(rec.products)); }
+          if (rec.services  && Array.isArray(rec.services)  && rec.services.length)  { services = rec.services;  localStorage.setItem('ssb_services',   JSON.stringify(rec.services)); }
+          if (rec.banners   && Array.isArray(rec.banners))                           { localStorage.setItem('ssb_banners',    JSON.stringify(rec.banners)); }
+          if (rec.categories && Array.isArray(rec.categories))                       { localStorage.setItem('ssb_categories', JSON.stringify(rec.categories)); }
+          if (!Array.isArray(products)||!products.length) products = defaultProducts;
+          if (!Array.isArray(services)||!services.length) services = defaultServices;
+          if (migrateIndexProducts(products)) { try { localStorage.setItem('ssb_catalog', JSON.stringify(products)); } catch(e){} }
+          buildFilterTabs();
+          mainCurrentPage = 1; mainFilteredList = getFilteredProducts(); renderProductsPage();
+          renderServices();
+          return;
+        }
+      } catch(e) { /* fall through to local */ }
+    }
+    // Fallback: use localStorage
+    loadFromLocal();
   }
 
   function showLoading(gridId, msg) {
