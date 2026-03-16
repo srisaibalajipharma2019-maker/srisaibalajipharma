@@ -1713,27 +1713,16 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
               <button class="btn-sm danger" style="padding:10px;font-size:0.875rem;" onclick="clearRxData()">🗑 Clear All Rx Records</button>
             </div>
           </div>
-          <div class="setting-card" style="grid-column:1/-1;">
-            <h3>&#9729;&#65039; JSONBin Cloud Sync</h3>
-            <p>Connect to JSONBin so your products sync to the cloud — visible to customers on any device.</p>
-            <div id="jbConfigStatus" style="font-size:0.85rem;margin-bottom:16px;padding:10px 14px;background:#f8fafc;border-radius:8px;border:1px solid rgba(0,137,123,0.15);">Checking…</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-              <div class="field"><label>API Master Key</label><input type="password" id="jbApiKey" placeholder="Paste your key from jsonbin.io" autocomplete="off"/></div>
-              <div class="field"><label>Bin ID (leave blank to auto-create)</label><input type="text" id="jbBinId" placeholder="auto-created on first save"/></div>
-            </div>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-              <button class="btn-teal" onclick="jbSaveConfig()">💾 Save &amp; Connect</button>
-              <button class="btn-sm" id="jbPullBtn" onclick="jbPullFromCloud()">⬇️ Pull from Cloud</button>
-              <button class="btn-sm" onclick="jbPushToCloud()">⬆️ Push to Cloud</button>
-              <button class="btn-sm danger" onclick="jbDisconnect()">✕ Disconnect</button>
-              <span id="jbSyncStatus" style="font-size:0.82rem;"></span>
-            </div>
-            <div style="margin-top:16px;padding:12px 16px;background:rgba(0,137,123,0.05);border-radius:8px;font-size:0.8rem;color:#5a6a7a;line-height:1.9;">
-              <strong style="color:#1a2a3a;">How to get your free API key:</strong><br>
-              1. Go to <a href="https://jsonbin.io" target="_blank" style="color:#00897B;font-weight:600;">jsonbin.io</a> → Sign up free<br>
-              2. Profile icon → <strong>API Keys</strong> → copy the <strong>Master Key</strong><br>
-              3. Paste above → click <strong>Save &amp; Connect</strong><br>
-              4. Done! Every save auto-syncs ☁️
+          <div class="setting-card" style="grid-column:1/-1;background:linear-gradient(135deg,rgba(0,137,123,0.06),rgba(200,169,110,0.06));border:2px solid rgba(0,137,123,0.3);">
+            <h3>&#127760; Publish to Website</h3>
+            <p style="margin-bottom:16px;">Download your updated <strong>index.html</strong> with all your current products baked in. Then upload it to GitHub — your customers will see your latest products instantly.</p>
+            <button class="btn-teal" style="font-size:1rem;padding:14px 28px;" onclick="exportUpdatedWebsite()">&#11015; Download Updated index.html</button>
+            <div style="margin-top:14px;padding:12px 16px;background:rgba(0,137,123,0.05);border-radius:8px;font-size:0.8rem;color:#5a6a7a;line-height:1.8;">
+              <strong style="color:#1a2a3a;">How it works:</strong><br>
+              1. Click the button above<br>
+              2. A file called <strong>index.html</strong> downloads<br>
+              3. Upload it to your GitHub repo<br>
+              4. Your live website shows your latest products! &#10003;
             </div>
           </div>
         </div>
@@ -3562,166 +3551,50 @@ function showAdminToast(msg) {
 
 
 <script>
-// ═══════════════════════════════════════════════
-// JSONBIN CLOUD SYNC - Self contained module
-// ═══════════════════════════════════════════════
-(function(){
+function exportUpdatedWebsite() {
+  // Get current data
+  var products   = localStorage.getItem('ssb_products')   || '[]';
+  var services   = localStorage.getItem('ssb_services')   || '[]';
+  var catalog    = localStorage.getItem('ssb_catalog')    || '[]';
+  var banners    = localStorage.getItem('ssb_banners')    || '[]';
+  var categories = localStorage.getItem('ssb_categories') || '[]';
 
-var JB_KEY_K = 'ssb_jb_key';
-var JB_BIN_K = 'ssb_jb_bin';
-var JB_BASE  = 'https://api.jsonbin.io/v3/b';
-var _pushTimer = null;
+  // Fetch the index.html template from the same server
+  fetch('index.html')
+    .then(function(r){ return r.text(); })
+    .then(function(html){
+      // Inject data as a script block right before </body>
+      var injection = '<script id="ssb-baked-data">\n' +
+        'try{\n' +
+        '  if(!localStorage.getItem("ssb_products"))   localStorage.setItem("ssb_products",   ' + JSON.stringify(products)   + ');\n' +
+        '  if(!localStorage.getItem("ssb_services"))   localStorage.setItem("ssb_services",   ' + JSON.stringify(services)   + ');\n' +
+        '  if(!localStorage.getItem("ssb_catalog"))    localStorage.setItem("ssb_catalog",    ' + JSON.stringify(catalog)    + ');\n' +
+        '  if(!localStorage.getItem("ssb_banners"))    localStorage.setItem("ssb_banners",    ' + JSON.stringify(banners)    + ');\n' +
+        '  if(!localStorage.getItem("ssb_categories")) localStorage.setItem("ssb_categories", ' + JSON.stringify(categories) + ');\n' +
+        '}catch(e){}\n' +
+        '<\/script>';
 
-function jbKey(){ return localStorage.getItem(JB_KEY_K)||''; }
-function jbBin(){ return localStorage.getItem(JB_BIN_K)||''; }
+      // Remove old baked data if exists
+      html = html.replace(/<script id="ssb-baked-data">[\s\S]*?<\/script>/g, '');
+      // Inject new data
+      html = html.replace('</body>', injection + '\n</body>');
 
-function jbHeaders(){
-  return {'Content-Type':'application/json','X-Master-Key':jbKey(),'X-Bin-Private':'false'};
-}
-
-// ── AUTO PUSH (called after every save) ──────────
-window.jbAutoPush = function(){
-  clearTimeout(_pushTimer);
-  _pushTimer = setTimeout(async function(){
-    if(!jbKey()) return;
-    var record = {
-      products:   JSON.parse(localStorage.getItem('ssb_products')||'[]'),
-      services:   JSON.parse(localStorage.getItem('ssb_services')||'[]'),
-      catalog:    JSON.parse(localStorage.getItem('ssb_catalog')||'[]'),
-      banners:    JSON.parse(localStorage.getItem('ssb_banners')||'[]'),
-      categories: JSON.parse(localStorage.getItem('ssb_categories')||'[]')
-    };
-    try {
-      var b = jbBin();
-      var url = b ? JB_BASE+'/'+b : JB_BASE;
-      var method = b ? 'PUT' : 'POST';
-      var extraH = b ? {} : {'X-Bin-Name':'SSB-Pharma'};
-      var r = await fetch(url, {method:method, headers:Object.assign(jbHeaders(),extraH), body:JSON.stringify(record)});
-      if(r.ok){
-        var j = await r.json();
-        if(!b && j.metadata && j.metadata.id){
-          localStorage.setItem(JB_BIN_K, j.metadata.id);
-          jbUpdateStatus();
-        }
-        var el = document.getElementById('jbSyncStatus');
-        if(el){ el.textContent='✅ Synced to cloud!'; el.style.color='#27ae60'; setTimeout(function(){ el.textContent=''; },4000); }
-      } else {
-        var el = document.getElementById('jbSyncStatus');
-        if(el){ el.textContent='⚠️ Sync failed — check API key'; el.style.color='#c0392b'; setTimeout(function(){ el.textContent=''; },5000); }
-      }
-    }catch(e){}
-  }, 1500);
-};
-
-// ── PULL FROM CLOUD ───────────────────────────────
-window.jbPullFromCloud = async function(){
-  var btn = document.getElementById('jbPullBtn');
-  if(!jbKey()){ alert('Please save your API key first.'); return; }
-  if(!jbBin()){ alert('No bin yet. Save a product first to create one, then pull.'); return; }
-  if(btn) btn.textContent = '⏳ Pulling…';
-  try {
-    var r = await fetch(JB_BASE+'/'+jbBin()+'/latest', {headers:{'X-Master-Key':jbKey(),'X-Bin-Private':'false'}});
-    if(!r.ok){ if(btn) btn.textContent='⬇️ Pull from Cloud'; alert('Could not read from cloud. Check your API key.'); return; }
-    var j = await r.json();
-    var rec = j.record || {};
-    if(rec.products   && rec.products.length)   { localStorage.setItem('ssb_products',   JSON.stringify(rec.products));   }
-    if(rec.services   && rec.services.length)   { localStorage.setItem('ssb_services',   JSON.stringify(rec.services));   }
-    if(rec.catalog    && rec.catalog.length)    { localStorage.setItem('ssb_catalog',    JSON.stringify(rec.catalog));    }
-    if(rec.banners    && Array.isArray(rec.banners)){ localStorage.setItem('ssb_banners', JSON.stringify(rec.banners)); }
-    if(rec.categories && rec.categories.length) { localStorage.setItem('ssb_categories', JSON.stringify(rec.categories));}
-    if(btn) btn.textContent='⬇️ Pull from Cloud';
-    alert('✅ Data pulled from cloud! Refreshing…');
-    window.location.reload();
-  }catch(e){ if(btn) btn.textContent='⬇️ Pull from Cloud'; alert('Error: '+e.message); }
-};
-
-// ── PUSH TO CLOUD ─────────────────────────────────
-window.jbPushToCloud = function(){
-  if(!jbKey()){ alert('Please save your API key first.'); return; }
-  window.jbAutoPush();
-  setTimeout(function(){ alert('Pushed to cloud!'); }, 2000);
-};
-
-// ── SAVE CONFIG ───────────────────────────────────
-window.jbSaveConfig = function(){
-  var kEl = document.getElementById('jbApiKey');
-  var bEl = document.getElementById('jbBinId');
-  var k = kEl ? kEl.value.trim() : '';
-  var b = bEl ? bEl.value.trim() : '';
-  if(!k){ alert('Please paste your API Master Key.'); return; }
-  localStorage.setItem(JB_KEY_K, k);
-  if(b) localStorage.setItem(JB_BIN_K, b);
-  if(kEl) kEl.value = '';
-  if(kEl) kEl.placeholder = 'Key saved ✓ — paste new key to change';
-  jbUpdateStatus();
-  window.jbAutoPush();
-  alert('✅ Connected! Pushing all data to cloud now…');
-};
-
-// ── DISCONNECT ────────────────────────────────────
-window.jbDisconnect = function(){
-  if(!confirm('Disconnect from JSONBin? Data stays on device.')) return;
-  localStorage.removeItem(JB_KEY_K);
-  localStorage.removeItem(JB_BIN_K);
-  jbUpdateStatus();
-};
-
-// ── UPDATE STATUS DISPLAY ─────────────────────────
-function jbUpdateStatus(){
-  var k = jbKey(); var b = jbBin();
-  var el = document.getElementById('jbConfigStatus');
-  var bEl = document.getElementById('jbBinId');
-  if(bEl && b) bEl.value = b;
-  if(!el) return;
-  if(k && b)  el.innerHTML = '<span style="color:#27ae60;">✅ Connected — Bin ID: <code style="background:#f0f4f8;padding:2px 6px;border-radius:4px;font-size:0.75rem;">'+b+'</code></span>';
-  else if(k)  el.innerHTML = '<span style="color:#C8A96E;">🔑 Key saved — will create bin on first save</span>';
-  else        el.innerHTML = '<span style="color:#5a6a7a;">Not connected — data stays on this device only</span>';
-}
-
-// ── HOOK INTO SAVES ───────────────────────────────
-// Patch localStorage.setItem to auto-push on data changes
-var _origSetItem = localStorage.setItem.bind(localStorage);
-localStorage.setItem = function(key, value){
-  _origSetItem(key, value);
-  if(key==='ssb_products'||key==='ssb_services'||key==='ssb_catalog'||key==='ssb_banners'||key==='ssb_categories'){
-    if(jbKey()) window.jbAutoPush();
-  }
-};
-
-// ── INIT ON LOAD ──────────────────────────────────
-document.addEventListener('DOMContentLoaded', function(){
-  jbUpdateStatus();
-  // Auto-pull from cloud on load if configured
-  if(jbKey() && jbBin()){
-    fetch(JB_BASE+'/'+jbBin()+'/latest', {headers:{'X-Master-Key':jbKey(),'X-Bin-Private':'false'}})
-    .then(function(r){ return r.ok ? r.json() : null; })
-    .then(function(j){
-      if(!j) return;
-      var rec = j.record || {};
-      var changed = false;
-      if(rec.products   && rec.products.length)   { _origSetItem('ssb_products',   JSON.stringify(rec.products));   changed=true; }
-      if(rec.services   && rec.services.length)   { _origSetItem('ssb_services',   JSON.stringify(rec.services));   changed=true; }
-      if(rec.catalog    && rec.catalog.length)    { _origSetItem('ssb_catalog',    JSON.stringify(rec.catalog));    changed=true; }
-      if(rec.banners    && Array.isArray(rec.banners)){ _origSetItem('ssb_banners', JSON.stringify(rec.banners)); }
-      if(rec.categories && rec.categories.length) { _origSetItem('ssb_categories', JSON.stringify(rec.categories)); changed=true; }
-      if(changed && typeof initAdminData === 'function'){
-        // Re-init to show cloud data
-        setTimeout(function(){
-          if(typeof lsGetProducts==='function') window.products = lsGetProducts() || [];
-          if(typeof renderProductsAdmin==='function') renderProductsAdmin();
-          if(typeof renderDashboard==='function') renderDashboard();
-          if(typeof renderCatalog==='function') renderCatalog();
-          if(typeof updateCatalogBadge==='function') updateCatalogBadge();
-          if(typeof updateSidebarBadges==='function') updateSidebarBadges();
-          if(typeof refreshAllCategoryDropdowns==='function') refreshAllCategoryDropdowns();
-        }, 500);
-      }
+      // Download
+      var blob = new Blob([html], {type:'text/html'});
+      var url  = URL.createObjectURL(blob);
+      var a    = document.createElement('a');
+      a.href = url;
+      a.download = 'index.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert('\u2705 index.html downloaded!\n\nNow upload it to GitHub and your customers will see your latest products!');
     })
-    .catch(function(){});
-  }
-});
-
-})();
+    .catch(function(){
+      alert('Could not fetch index.html. Make sure you are using the live website (not a local file).');
+    });
+}
 </script>
 </body>
 </html>
