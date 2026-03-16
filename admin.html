@@ -2132,12 +2132,21 @@ function initAdminData() {
       if (record.banners   && Array.isArray(record.banners))                              { localStorage.setItem('ssb_banners',    JSON.stringify(record.banners)); }
       if (record.categories && Array.isArray(record.categories))                          { localStorage.setItem('ssb_categories', JSON.stringify(record.categories)); }
       // Re-render everything with fresh cloud data
+      // Also seed catalog from products if catalog is still empty
+      if (!catalogProducts || !catalogProducts.length) {
+        var fallbackProds = lsGetProducts();
+        if (fallbackProds && fallbackProds.length) {
+          catalogProducts = fallbackProds;
+          catSave(catalogProducts);
+        }
+      }
       updateSidebarBadges();
       renderProductsAdmin();
       renderServicesAdmin();
       renderDashboard();
       renderCatalog();
       updateCatalogBadge();
+      populateCompanyFilter();
       refreshAllCategoryDropdowns();
     }).catch(function(){});
   }
@@ -2905,6 +2914,14 @@ function migrateAdminProducts(list) {
 
 function initCatalog() {
   catalogProducts = catLoad();
+  // If catalog is empty, seed it from ssb_products so it's never blank
+  if (!catalogProducts || !catalogProducts.length) {
+    var prods = lsGetProducts();
+    if (prods && prods.length) {
+      catalogProducts = prods;
+      catSave(catalogProducts);
+    }
+  }
   var didChange = migrateAdminProducts(catalogProducts);
   if (didChange) catSave(catalogProducts);
   renderCatalog();
