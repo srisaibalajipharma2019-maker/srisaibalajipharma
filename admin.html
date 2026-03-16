@@ -1103,17 +1103,13 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
       </button>
 
       <div class="sidebar-section-label">Manage</div>
-      <button class="sidebar-link" onclick="showPanel('products',this)">
+      <button class="sidebar-link active" onclick="showPanel('catalog',this)">
         <span class="sicon">💊</span> Products
-        <span class="sidebar-badge" id="sbProducts">0</span>
+        <span class="sidebar-badge" id="sbCatalog">0</span>
       </button>
       <a class="sidebar-link" href="products-catalogue.html" target="_blank">
         <span class="sicon">📋</span> View Catalogue
       </a>
-      <button class="sidebar-link" onclick="showPanel('catalog',this)">
-        <span class="sicon">🗂️</span> Full Catalog
-        <span class="sidebar-badge" id="sbCatalog">0</span>
-      </button>
       <button class="sidebar-link" onclick="showPanel('services',this)">
         <span class="sicon">🩺</span> Services
         <span class="sidebar-badge" id="sbServices">0</span>
@@ -1204,8 +1200,8 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
         </div>
       </div>
 
-      <!-- ── PRODUCTS ──────────────────────────────── -->
-      <div class="admin-panel" id="panel-products">
+      <!-- Products panel removed - using catalog as main products -->
+      <div class="admin-panel" id="panel-products" style="display:none!important;">
         <div class="panel-header">
           <div class="panel-title">Manage <em>Products</em></div>
           <a href="products-catalogue.html" target="_blank" class="btn-teal" style="text-decoration:none;">📋 View Live Catalogue</a>
@@ -1442,7 +1438,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
       <!-- ── FULL CATALOG ─────────────────────────── -->
       <div class="admin-panel" id="panel-catalog">
         <div class="panel-header">
-          <div class="panel-title">Full <em>Catalog</em></div>
+          <div class="panel-title">Manage <em>Products</em></div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
             <label class="btn-gold" style="cursor:pointer;">
               📤 Import Excel/CSV
@@ -1715,14 +1711,14 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
           </div>
           <div class="setting-card" style="grid-column:1/-1;background:linear-gradient(135deg,rgba(0,137,123,0.06),rgba(200,169,110,0.06));border:2px solid rgba(0,137,123,0.3);">
             <h3>&#127760; Publish to Website</h3>
-            <p style="margin-bottom:16px;">Download your updated <strong>index.html</strong> with all your current products baked in. Then upload it to GitHub — your customers will see your latest products instantly.</p>
-            <button class="btn-teal" style="font-size:1rem;padding:14px 28px;" onclick="exportUpdatedWebsite()">&#11015; Download Updated index.html</button>
+            <p style="margin-bottom:16px;">Click below to download your updated <strong>index.html</strong> with all your current products. Then upload it to GitHub — customers will see your latest products instantly.</p>
+            <button class="btn-teal" style="font-size:1rem;padding:14px 28px;" onclick="exportUpdatedWebsite()">&#11015;&#65039; Download Updated index.html</button>
             <div style="margin-top:14px;padding:12px 16px;background:rgba(0,137,123,0.05);border-radius:8px;font-size:0.8rem;color:#5a6a7a;line-height:1.8;">
-              <strong style="color:#1a2a3a;">How it works:</strong><br>
-              1. Click the button above<br>
-              2. A file called <strong>index.html</strong> downloads<br>
+              <strong style="color:#1a2a3a;">Steps:</strong><br>
+              1. Add/edit your products above<br>
+              2. Click the button &#11015;&#65039; to download index.html<br>
               3. Upload it to your GitHub repo<br>
-              4. Your live website shows your latest products! &#10003;
+              4. Customers see your products instantly! &#10003;
             </div>
           </div>
         </div>
@@ -2063,7 +2059,7 @@ function initAdminData() {
 
 
 function updateSidebarBadges() {
-  document.getElementById('sbProducts').textContent = products.length;
+  // sbProducts removed - now using sbCatalog
   document.getElementById('sbServices').textContent = services.length;
   var rxNew = rxLoad().filter(function(r){ return r.status === 'New'; }).length;
   var sb = document.getElementById('sbRxNew');
@@ -2073,7 +2069,7 @@ function updateSidebarBadges() {
 
 // ── DASHBOARD ──────────────────────────────────────────────
 function renderDashboard() {
-  document.getElementById('dashProducts').textContent = products.length;
+  document.getElementById('dashProducts').textContent = (catalogProducts && catalogProducts.length) ? catalogProducts.length : (products ? products.length : 0);
   document.getElementById('dashServices').textContent = services.length;
   var rxAll = rxLoad();
   var rxNew = rxAll.filter(function(r){ return r.status === 'New'; }).length;
@@ -2823,6 +2819,7 @@ function populateCompanyFilter() {
 }
 
 function renderCatalog() {
+  if (!catPage || isNaN(catPage) || catPage < 1) catPage = 1;
   var q       = (document.getElementById('catSearch').value || '').toLowerCase();
   var company = document.getElementById('catCompanyFilter').value;
   var stock   = document.getElementById('catStockFilter').value;
@@ -3551,49 +3548,43 @@ function showAdminToast(msg) {
 
 
 <script>
+// Export updated index.html with baked-in products
 function exportUpdatedWebsite() {
-  // Get current data
-  var products   = localStorage.getItem('ssb_products')   || '[]';
-  var services   = localStorage.getItem('ssb_services')   || '[]';
   var catalog    = localStorage.getItem('ssb_catalog')    || '[]';
+  var services   = localStorage.getItem('ssb_services')   || '[]';
   var banners    = localStorage.getItem('ssb_banners')    || '[]';
   var categories = localStorage.getItem('ssb_categories') || '[]';
 
-  // Fetch the index.html template from the same server
   fetch('index.html')
     .then(function(r){ return r.text(); })
     .then(function(html){
-      // Inject data as a script block right before </body>
-      var injection = '<script id="ssb-baked-data">\n' +
-        'try{\n' +
-        '  if(!localStorage.getItem("ssb_products"))   localStorage.setItem("ssb_products",   ' + JSON.stringify(products)   + ');\n' +
-        '  if(!localStorage.getItem("ssb_services"))   localStorage.setItem("ssb_services",   ' + JSON.stringify(services)   + ');\n' +
-        '  if(!localStorage.getItem("ssb_catalog"))    localStorage.setItem("ssb_catalog",    ' + JSON.stringify(catalog)    + ');\n' +
-        '  if(!localStorage.getItem("ssb_banners"))    localStorage.setItem("ssb_banners",    ' + JSON.stringify(banners)    + ');\n' +
-        '  if(!localStorage.getItem("ssb_categories")) localStorage.setItem("ssb_categories", ' + JSON.stringify(categories) + ');\n' +
-        '}catch(e){}\n' +
-        '<\/script>';
-
-      // Remove old baked data if exists
-      html = html.replace(/<script id="ssb-baked-data">[\s\S]*?<\/script>/g, '');
-      // Inject new data
-      html = html.replace('</body>', injection + '\n</body>');
-
-      // Download
+      var data = 'try{' +
+        'if(!localStorage.getItem("ssb_catalog"))    localStorage.setItem("ssb_catalog",    ' + JSON.stringify(catalog)    + ');' +
+        'if(!localStorage.getItem("ssb_services"))   localStorage.setItem("ssb_services",   ' + JSON.stringify(services)   + ');' +
+        'if(!localStorage.getItem("ssb_banners"))    localStorage.setItem("ssb_banners",    ' + JSON.stringify(banners)    + ');' +
+        'if(!localStorage.getItem("ssb_categories")) localStorage.setItem("ssb_categories", ' + JSON.stringify(categories) + ');' +
+        '}catch(e){}';
+      html = html.replace(/<script id="ssb-data">[\s\S]*?<\/script>/g, '');
+      html = html.replace('</body>', '<script id="ssb-data">' + data + '</' + 'script>
+</body>');
       var blob = new Blob([html], {type:'text/html'});
       var url  = URL.createObjectURL(blob);
       var a    = document.createElement('a');
-      a.href = url;
-      a.download = 'index.html';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      alert('\u2705 index.html downloaded!\n\nNow upload it to GitHub and your customers will see your latest products!');
+      a.href = url; a.download = 'index.html';
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+      alert('index.html downloaded!
+
+Now upload it to GitHub and your customers will see your products!');
     })
-    .catch(function(){
-      alert('Could not fetch index.html. Make sure you are using the live website (not a local file).');
-    });
+    .catch(function(){ alert('Please use the live website link (not a local file) to export.'); });
+}
+
+// Fix mobile nav
+function mobileNavActive(panelId) {
+  document.querySelectorAll('.mob-nav-btn').forEach(function(b){ b.classList.remove('active'); });
+  var btn = document.getElementById('mobn-' + panelId);
+  if (btn) btn.classList.add('active');
 }
 </script>
 </body>
