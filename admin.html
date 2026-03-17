@@ -1103,13 +1103,17 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
       </button>
 
       <div class="sidebar-section-label">Manage</div>
-      <button class="sidebar-link" onclick="showPanel('catalog',this)">
+      <button class="sidebar-link" onclick="showPanel('products',this)">
         <span class="sicon">💊</span> Products
-        <span class="sidebar-badge" id="sbCatalog">0</span>
+        <span class="sidebar-badge" id="sbProducts">0</span>
       </button>
       <a class="sidebar-link" href="products-catalogue.html" target="_blank">
         <span class="sicon">📋</span> View Catalogue
       </a>
+      <button class="sidebar-link" onclick="showPanel('catalog',this)">
+        <span class="sicon">🗂️</span> Full Catalog
+        <span class="sidebar-badge" id="sbCatalog">0</span>
+      </button>
       <button class="sidebar-link" onclick="showPanel('services',this)">
         <span class="sicon">🩺</span> Services
         <span class="sidebar-badge" id="sbServices">0</span>
@@ -1438,7 +1442,7 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
       <!-- ── FULL CATALOG ─────────────────────────── -->
       <div class="admin-panel" id="panel-catalog">
         <div class="panel-header">
-          <div class="panel-title">Manage <em>Products</em></div>
+          <div class="panel-title">Full <em>Catalog</em></div>
           <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
             <label class="btn-gold" style="cursor:pointer;">
               📤 Import Excel/CSV
@@ -1681,8 +1685,8 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
             <h3>📊 Database Info</h3>
             <p>Your current JSONBin database connection details</p>
             <div style="font-size:0.82rem;color:var(--text-muted);display:flex;flex-direction:column;gap:10px;">
-              <div><strong style="color:var(--text);">Products Bin ID:</strong><br><code id="setProductsBin" style="font-size:0.75rem;background:#f0f4f8;padding:3px 7px;border-radius:4px;color:var(--teal);">Loading…</code></div>
-              <div><strong style="color:var(--text);">Services Bin ID:</strong><br><code id="setServicesBin" style="font-size:0.75rem;background:#f0f4f8;padding:3px 7px;border-radius:4px;color:var(--teal);">Loading…</code></div>
+              <div><strong style="color:var(--text);">Cloud Bin ID:</strong><br><code id="setProductsBin" style="font-size:0.75rem;background:#f0f4f8;padding:3px 7px;border-radius:4px;color:var(--teal);">Not connected</code></div>
+              <div><strong style="color:var(--text);">Storage:</strong><br><code id="setServicesBin" style="font-size:0.75rem;background:#f0f4f8;padding:3px 7px;border-radius:4px;color:var(--teal);">localStorage (offline)</code></div>
               <div><strong style="color:var(--text);">Rx Records:</strong> <span id="setRxCount">—</span> total</div>
               <div><strong style="color:var(--text);">Video Records:</strong> <span id="setVidCount">—</span> total</div>
             </div>
@@ -1709,36 +1713,71 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
               <button class="btn-sm danger" style="padding:10px;font-size:0.875rem;" onclick="clearRxData()">🗑 Clear All Rx Records</button>
             </div>
           </div>
+        </div>
+
+  
           <div class="setting-card" style="grid-column:1/-1;">
-            <h3>&#9729; JSONBin Cloud Sync</h3>
-            <p>Connect once — every product save automatically syncs to cloud so customers always see latest products.</p>
-            <div id="jbStatus" style="padding:10px 14px;border-radius:8px;font-size:0.85rem;margin-bottom:14px;background:#f8fafc;border:1px solid rgba(0,137,123,0.2);">Not configured</div>
+            <h3>☁️ JSONBin Cloud Sync</h3>
+            <p>Connect to JSONBin so your products, services and banners sync to the cloud — visible to customers on any device.</p>
+            <div id="jbConfigStatus" style="font-size:0.85rem;margin-bottom:16px;padding:10px 14px;background:#f8fafc;border-radius:8px;border:1px solid var(--border);">Checking…</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
               <div class="field">
                 <label>API Master Key</label>
-                <input type="password" id="jbApiKey" placeholder="Paste from jsonbin.io" autocomplete="off"/>
+                <input type="password" id="jbApiKey" placeholder="$2a$10$…" autocomplete="off"/>
               </div>
               <div class="field">
-                <label>Bin ID (from test or auto-created)</label>
-                <input type="text" id="jbBinId" placeholder="e.g. 69b8490aaa77b81da9edd019"/>
+                <label>Bin ID <span style="font-weight:400;text-transform:none;">(leave blank to auto-create)</span></label>
+                <input type="text" id="jbBinId" placeholder="auto-created on first save"/>
               </div>
             </div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-              <button class="btn-teal" onclick="jbConnect()">&#128190; Save &amp; Connect</button>
-              <button class="btn-sm" onclick="jbPull()">&#8595; Pull from Cloud</button>
-              <button class="btn-sm" onclick="jbPush()">&#8593; Push to Cloud</button>
-              <button class="btn-sm danger" onclick="jbDisconnect()">&#10005; Disconnect</button>
-              <span id="jbMsg" style="font-size:0.82rem;"></span>
+              <button class="btn-teal" onclick="jbSaveConfig()">💾 Save &amp; Connect</button>
+              <button class="btn-sm" id="jbPullBtn" onclick="jbPullNow()">⬇️ Pull from Cloud</button>
+              <button class="btn-sm" onclick="jbPush()">⬆️ Push to Cloud</button>
+              <button class="btn-sm danger" onclick="jbClearConfig()">✕ Disconnect</button>
+              <span id="jbSyncStatus" style="font-size:0.82rem;"></span>
+            </div>
+            <div style="margin-top:16px;padding:12px 16px;background:rgba(0,137,123,0.05);border-radius:8px;border:1px solid rgba(0,137,123,0.15);font-size:0.8rem;color:var(--text-muted);line-height:1.9;">
+              <strong style="color:var(--text);font-size:0.82rem;">How to get your free API key:</strong><br>
+              1. Go to <a href="https://jsonbin.io" target="_blank" style="color:var(--teal);font-weight:600;">jsonbin.io</a> → Sign up free (no credit card needed)<br>
+              2. Click your profile icon → <strong>API Keys</strong> → copy the <strong>Master Key</strong><br>
+              3. Paste it in the field above → click <strong>Save &amp; Connect</strong><br>
+              4. Done! Every product/service/banner save now auto-syncs ☁️
+            </div>
+          </div>
+            <p>Connect to JSONBin so your products, services and banners sync to the cloud — visible to customers on any device.</p>
+
+            <div id="jbConfigStatus" style="font-size:0.85rem;margin-bottom:16px;padding:10px 14px;background:#f8fafc;border-radius:8px;border:1px solid var(--border);">Checking…</div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+              <div class="field">
+                <label>API Master Key</label>
+                <input type="password" id="jbApiKey" placeholder="$2a$10$…" autocomplete="off"/>
+              </div>
+              <div class="field">
+                <label>Bin ID <span style="font-weight:400;text-transform:none;">(leave blank to auto-create)</span></label>
+                <input type="text" id="jbBinId" placeholder="auto-created on first save"/>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <button class="btn-teal" onclick="jbSaveConfig()">💾 Save & Connect</button>
+              <button class="btn-sm" id="jbPullBtn" onclick="jbPullNow()">⬇️ Pull from Cloud</button>
+              <button class="btn-sm" onclick="jbPush()">⬆️ Push to Cloud</button>
+              <button class="btn-sm danger" onclick="jbClearConfig()">✕ Disconnect</button>
+              <span id="jbSyncStatus" style="font-size:0.82rem;"></span>
+            </div>
+
+            <div style="margin-top:16px;padding:12px 16px;background:rgba(0,137,123,0.05);border-radius:8px;border:1px solid rgba(0,137,123,0.15);font-size:0.8rem;color:var(--text-muted);line-height:1.8;">
+              <strong style="color:var(--text);">How to get your free API key:</strong><br>
+              1. Go to <a href="https://jsonbin.io" target="_blank" style="color:var(--teal);">jsonbin.io</a> → Sign up free<br>
+              2. Click your profile → <strong>API Keys</strong> → copy the <strong>Master Key</strong><br>
+              3. Paste it above → click <strong>Save &amp; Connect</strong><br>
+              4. Done! Every save auto-syncs to the cloud ☁️
             </div>
           </div>
 
-          <div class="setting-card" style="grid-column:1/-1;background:linear-gradient(135deg,rgba(0,137,123,0.06),rgba(200,169,110,0.06));border:2px solid rgba(0,137,123,0.3);">
-            <h3>&#127760; Publish to Website</h3>
-            <p style="margin-bottom:16px;">Download your updated <strong>index.html</strong> with all current products baked in. Upload to GitHub and customers see your products instantly.</p>
-            <button class="btn-teal" style="font-size:1rem;padding:14px 28px;" onclick="exportUpdatedWebsite()">&#8595; Download Updated index.html</button>
-          </div>
-
-        </div>
+      </div>
       </div>
 
       <!-- ── CATEGORIES ─────────────────────────────── -->
@@ -1944,6 +1983,65 @@ tbody td { padding: 13px 18px; font-size: 0.875rem; vertical-align: middle; }
 <script>
 'use strict';
 
+/* ── JSONBin cloud sync ─────────────────────────────────────────────
+   Single bin holds: { products, services, catalog, banners }
+   Keys stored in localStorage:
+     ssb_jb_key  = Master API key from jsonbin.io
+     ssb_jb_bin  = Bin ID (created automatically on first save)
+   ──────────────────────────────────────────────────────────────────── */
+var JB = (function(){
+  var BASE = 'https://api.jsonbin.io/v3/b';
+  function key(){ return localStorage.getItem('ssb_jb_key')||''; }
+  function bin(){ return localStorage.getItem('ssb_jb_bin')||''; }
+
+  function headers(write){
+    var h = {'Content-Type':'application/json','X-Master-Key':key()};
+    if(!write) h['X-Bin-Private']='false';
+    return h;
+  }
+
+  return {
+    configured: function(){ return !!(key() && bin()); },
+    keyOnly:    function(){ return !!key(); },
+
+    /* Read entire record from cloud */
+    read: async function(){
+      if(!key()||!bin()) return null;
+      try{
+        var r = await fetch(BASE+'/'+bin()+'/latest',{headers:headers(false)});
+        if(!r.ok) return null;
+        var j = await r.json();
+        return j.record || null;
+      }catch(e){ return null; }
+    },
+
+    /* Write entire record to cloud */
+    write: async function(record){
+      if(!key()) return false;
+      try{
+        var b = bin();
+        if(b){
+          var r = await fetch(BASE+'/'+b,{method:'PUT',headers:headers(true),body:JSON.stringify(record)});
+          return r.ok;
+        } else {
+          /* Create new bin */
+          var r = await fetch(BASE,{method:'POST',headers:Object.assign(headers(true),{'X-Bin-Name':'SSB-Pharma'}),body:JSON.stringify(record)});
+          if(!r.ok) return false;
+          var j = await r.json();
+          var newId = j.metadata && j.metadata.id;
+          if(newId){ localStorage.setItem('ssb_jb_bin', newId); return true; }
+          return false;
+        }
+      }catch(e){ return false; }
+    },
+
+    setKey: function(k){ localStorage.setItem('ssb_jb_key', k.trim()); },
+    setBin: function(b){ localStorage.setItem('ssb_jb_bin', b.trim()); },
+    getBin: function(){ return bin(); },
+    getKey: function(){ return key(); }
+  };
+})();
+
 // ── CONFIG ─────────────────────────────────────────────────
 var ADMIN_PASSWORD_KEY = 'ssb_admin_pwd';
 var ADMIN_PASSWORD     = localStorage.getItem(ADMIN_PASSWORD_KEY) || 'admin123';
@@ -1952,11 +2050,17 @@ var ADMIN_PASSWORD     = localStorage.getItem(ADMIN_PASSWORD_KEY) || 'admin123';
 function lsGetProducts() {
   try { var d = localStorage.getItem('ssb_products'); return d ? JSON.parse(d) : null; } catch(e) { return null; }
 }
-function lsSaveProducts(arr) { localStorage.setItem('ssb_products', JSON.stringify(arr)); }
+function lsSaveProducts(arr) {
+  localStorage.setItem('ssb_products', JSON.stringify(arr));
+  jbPush();
+}
 function lsGetServices() {
   try { var d = localStorage.getItem('ssb_services'); return d ? JSON.parse(d) : null; } catch(e) { return null; }
 }
-function lsSaveServices(arr) { localStorage.setItem('ssb_services', JSON.stringify(arr)); }
+function lsSaveServices(arr) {
+  localStorage.setItem('ssb_services', JSON.stringify(arr));
+  jbPush();
+}
 
 
 var defaultProducts = [
@@ -1989,7 +2093,7 @@ function doLogin() {
   var err = document.getElementById('loginError');
   err.classList.remove('show');
   if (pwd === ADMIN_PASSWORD) {
-    localStorage.setItem('ssb_admin_session', '1');
+    sessionStorage.setItem('ssb_admin_session', '1');
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminScreen').style.display = 'block';
     initAdminData();
@@ -2001,7 +2105,7 @@ function doLogin() {
 
 function doLogout() {
   if (!confirm('Sign out of admin panel?')) return;
-  localStorage.removeItem('ssb_admin_session');
+  sessionStorage.removeItem('ssb_admin_session');
   document.getElementById('adminScreen').style.display = 'none';
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('loginPwd').value = '';
@@ -2009,7 +2113,7 @@ function doLogout() {
 
 // Auto-check session on load
 (function() {
-  if (localStorage.getItem('ssb_admin_session') === '1') {
+  if (sessionStorage.getItem('ssb_admin_session') === '1') {
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminScreen').style.display = 'block';
     initAdminData();
@@ -2072,6 +2176,11 @@ function initAdminData() {
   var expEl = document.getElementById('expiryAlertBox');
   if (expEl) { expEl.style.display=(expiredCount||expSoonCount)?'block':'none'; expEl.innerHTML = (expiredCount?'<span style="color:#c0392b;font-weight:700;">⚠️ '+expiredCount+' product(s) EXPIRED</span><br>':'') + (expSoonCount?'<span style="color:#b7770d;font-weight:700;">⏳ '+expSoonCount+' product(s) expiring within 90 days</span>':''); }
   document.getElementById('setVidCount').textContent = loadVids().length;
+  jbRenderStatus();
+  var binEl = document.getElementById('setProductsBin');
+  if (binEl) { var b=JB.getBin(); binEl.textContent = b || 'Not connected'; }
+  var stEl = document.getElementById('setServicesBin');
+  if (stEl) { stEl.textContent = JB.configured() ? 'JSONBin cloud ☁️' : 'localStorage (offline)'; }
 }
 
 
@@ -2086,7 +2195,7 @@ function updateSidebarBadges() {
 
 // ── DASHBOARD ──────────────────────────────────────────────
 function renderDashboard() {
-  document.getElementById('dashProducts').textContent = (catalogProducts&&catalogProducts.length) ? catalogProducts.length : (products?products.length:0);
+  document.getElementById('dashProducts').textContent = products.length;
   document.getElementById('dashServices').textContent = services.length;
   var rxAll = rxLoad();
   var rxNew = rxAll.filter(function(r){ return r.status === 'New'; }).length;
@@ -2787,7 +2896,10 @@ function catLoad() {
   try { return JSON.parse(localStorage.getItem(CAT_KEY) || '[]'); } catch(e) { return []; }
 }
 
-function catSave(arr) { localStorage.setItem(CAT_KEY, JSON.stringify(arr)); }
+function catSave(arr) {
+  localStorage.setItem(CAT_KEY, JSON.stringify(arr));
+  jbPush();
+}
 
 var CAT_MAP_ADMIN = {
   'OTC': 'Gastro', 'Prescription': 'Antibiotics', 'Pain Relief': 'Gastro',
@@ -2836,7 +2948,6 @@ function populateCompanyFilter() {
 }
 
 function renderCatalog() {
-  if (!catPage || isNaN(catPage)) catPage = 1;
   var q       = (document.getElementById('catSearch').value || '').toLowerCase();
   var company = document.getElementById('catCompanyFilter').value;
   var stock   = document.getElementById('catStockFilter').value;
@@ -3381,6 +3492,90 @@ function clearProductImage(urlFieldId, previewId) {
 })();
 </script>
 
+
+// ── JSONBIN PUSH ────────────────────────────────────────────────────
+var _jbPushTimer = null;
+function jbPush() {
+  // Debounce: wait 1.5s after last change before pushing
+  clearTimeout(_jbPushTimer);
+  _jbPushTimer = setTimeout(async function(){
+    if (!JB.configured()) return;
+    var record = {
+      products: lsGetProducts() || [],
+      services: (function(){ try{ return JSON.parse(localStorage.getItem('ssb_services')||'[]'); }catch(e){ return []; } })(),
+      catalog:  (function(){ try{ return JSON.parse(localStorage.getItem('ssb_catalog')||'[]');  }catch(e){ return []; } })(),
+      banners:  (function(){ try{ return JSON.parse(localStorage.getItem('ssb_banners')||'[]');  }catch(e){ return []; } })(),
+      categories: (function(){ try{ return JSON.parse(localStorage.getItem('ssb_categories')||'[]'); }catch(e){ return []; } })()
+    };
+    var ok = await JB.write(record);
+    var el = document.getElementById('jbSyncStatus');
+    if (el) {
+      el.textContent = ok ? '✅ Synced to cloud' : '⚠️ Sync failed — check API key';
+      el.style.color  = ok ? 'var(--success)' : 'var(--danger)';
+      setTimeout(function(){ if(el) el.textContent = ''; }, 4000);
+    }
+  }, 1500);
+}
+
+// ── JSONBIN SETTINGS UI ─────────────────────────────────────────────
+function jbSaveConfig() {
+  var k = (document.getElementById('jbApiKey').value || '').trim();
+  var b = (document.getElementById('jbBinId').value  || '').trim();
+  if (!k) { alert('Please enter your API key.'); return; }
+  JB.setKey(k);
+  if (b) JB.setBin(b);
+  jbRenderStatus();
+  // Immediately push everything
+  jbPush();
+  showAdminToast('JSONBin configured! Pushing data now…');
+}
+
+function jbClearConfig() {
+  if (!confirm('Remove JSONBin config? Data stays in localStorage but won\'t sync to cloud.')) return;
+  localStorage.removeItem('ssb_jb_key');
+  localStorage.removeItem('ssb_jb_bin');
+  jbRenderStatus();
+}
+
+async function jbPullNow() {
+  if (!JB.configured()) { alert('Configure JSONBin first.'); return; }
+  var el = document.getElementById('jbPullBtn');
+  if (el) el.textContent = '⏳ Pulling…';
+  var record = await JB.read();
+  if (!record) {
+    if (el) el.textContent = '⬇️ Pull from Cloud';
+    alert('Could not read from JSONBin. Check your API key and Bin ID.');
+    return;
+  }
+  if (record.products  && Array.isArray(record.products))   { localStorage.setItem('ssb_products',   JSON.stringify(record.products));   products = record.products; }
+  if (record.services  && Array.isArray(record.services))   { localStorage.setItem('ssb_services',   JSON.stringify(record.services));   services = record.services; }
+  if (record.catalog   && Array.isArray(record.catalog))    { localStorage.setItem('ssb_catalog',    JSON.stringify(record.catalog));    catalogProducts = record.catalog; }
+  if (record.banners   && Array.isArray(record.banners))    { localStorage.setItem('ssb_banners',    JSON.stringify(record.banners)); }
+  if (record.categories && Array.isArray(record.categories)){ localStorage.setItem('ssb_categories', JSON.stringify(record.categories)); }
+  renderProductsAdmin();
+  renderServicesAdmin();
+  renderDashboard();
+  renderCatalog();
+  updateSidebarBadges();
+  if (el) el.textContent = '⬇️ Pull from Cloud';
+  showAdminToast('✅ Data pulled from cloud successfully!');
+}
+
+function jbRenderStatus() {
+  var k    = JB.getKey();
+  var b    = JB.getBin();
+  var kEl  = document.getElementById('jbApiKey');
+  var bEl  = document.getElementById('jbBinId');
+  var stEl = document.getElementById('jbConfigStatus');
+  if (kEl) kEl.value = k ? k.substring(0,12)+'…' : '';
+  if (bEl) bEl.value = b || '';
+  if (stEl) {
+    if (k && b)      { stEl.innerHTML = '<span style="color:var(--success);">✅ Connected — Bin ID: <code style="font-size:0.75rem;background:#f0f4f8;padding:2px 6px;border-radius:4px;">'+b+'</code></span>'; }
+    else if (k && !b){ stEl.innerHTML = '<span style="color:var(--gold);">🔑 Key saved — will create bin on first save</span>'; }
+    else             { stEl.innerHTML = '<span style="color:var(--text-muted);">Not configured — data stays local only</span>'; }
+  }
+}
+
 <!-- MOBILE BOTTOM NAV (visible only on mobile) -->
 <nav class="mobile-admin-nav" id="mobileAdminNav">
   <button class="mob-nav-btn active" id="mobn-dashboard" onclick="showPanel('dashboard',null);mobileNavActive('dashboard')">
@@ -3439,7 +3634,10 @@ var BNR_STYLES = {
 function getBanners() {
   try { return JSON.parse(localStorage.getItem('ssb_banners') || '[]'); } catch(e) { return []; }
 }
-function saveBanners(arr) { localStorage.setItem('ssb_banners', JSON.stringify(arr)); }
+function saveBanners(arr) {
+  localStorage.setItem('ssb_banners', JSON.stringify(arr));
+  jbPush();
+}
 
 function renderBannerList() {
   var list = document.getElementById('bannerList');
@@ -3561,154 +3759,6 @@ function showAdminToast(msg) {
 }
 
 // renderBannerList is called directly from showPanel above
-</script>
-
-<script>
-var JB_BASE='https://api.jsonbin.io/v3/b';
-function jbKey(){return localStorage.getItem('ssb_jb_key')||'';}
-function jbBin(){return localStorage.getItem('ssb_jb_bin')||'';}
-
-function jbRefreshStatus(){
-  var k=jbKey(),b=jbBin();
-  var kEl=document.getElementById('jbApiKey'),bEl=document.getElementById('jbBinId'),st=document.getElementById('jbStatus');
-  if(kEl) kEl.placeholder=k?'Key saved (paste to change)':'Paste from jsonbin.io';
-  if(bEl&&b) bEl.value=b;
-  if(!st) return;
-  if(k&&b){st.innerHTML='<span style="color:#27ae60;">Connected - Bin: '+b+'</span>';st.style.background='#e8f5e9';st.style.borderColor='#27ae60';}
-  else if(k){st.innerHTML='<span style="color:#C8A96E;">Key saved - enter your Bin ID</span>';st.style.background='#fffbf0';}
-  else{st.innerHTML='Not configured - enter API key and Bin ID below';st.style.background='#f8fafc';}
-}
-
-function jbMsgShow(txt,ok){
-  var el=document.getElementById('jbMsg');
-  if(el){el.textContent=txt;el.style.color=ok?'#27ae60':'#c0392b';setTimeout(function(){if(el)el.textContent='';},5000);}
-}
-
-function jbGetRecord(){
-  return {
-    catalog:    JSON.parse(localStorage.getItem('ssb_catalog')||'[]'),
-    services:   JSON.parse(localStorage.getItem('ssb_services')||'[]'),
-    banners:    JSON.parse(localStorage.getItem('ssb_banners')||'[]'),
-    categories: JSON.parse(localStorage.getItem('ssb_categories')||'[]')
-  };
-}
-
-window.jbConnect=function(){
-  var k=(document.getElementById('jbApiKey').value||'').trim();
-  var b=(document.getElementById('jbBinId').value||'').trim();
-  if(!k){alert('Please paste your API Master Key from jsonbin.io');return;}
-  localStorage.setItem('ssb_jb_key',k);
-  if(b) localStorage.setItem('ssb_jb_bin',b);
-  document.getElementById('jbApiKey').value='';
-  jbRefreshStatus();
-  window.jbPush();
-};
-
-window.jbPush=function(){
-  var k=jbKey(),b=jbBin();
-  if(!k){alert('Please connect JSONBin first in Settings.');return;}
-  jbMsgShow('Pushing to cloud...',true);
-  var url=b?JB_BASE+'/'+b:JB_BASE;
-  var method=b?'PUT':'POST';
-  var headers={'Content-Type':'application/json','X-Master-Key':k};
-  if(!b) headers['X-Bin-Name']='SSB-Pharma';
-  fetch(url,{method:method,headers:headers,body:JSON.stringify(jbGetRecord())})
-  .then(function(r){return r.json();})
-  .then(function(j){
-    if(j.metadata&&j.metadata.id){localStorage.setItem('ssb_jb_bin',j.metadata.id);jbRefreshStatus();}
-    jbMsgShow('Synced to cloud!',true);
-    if(typeof showAdminToast==='function') showAdminToast('Synced to cloud!');
-  })
-  .catch(function(e){jbMsgShow('Sync failed: '+e.message,false);});
-};
-
-window.jbPull=function(){
-  var k=jbKey(),b=jbBin();
-  if(!k||!b){alert('Please connect JSONBin first.');return;}
-  jbMsgShow('Pulling from cloud...',true);
-  fetch(JB_BASE+'/'+b+'/latest',{headers:{'X-Master-Key':k,'X-Bin-Private':'false'}})
-  .then(function(r){return r.json();})
-  .then(function(j){
-    var rec=j.record||{};
-    if(rec.catalog&&rec.catalog.length){localStorage.setItem('ssb_catalog',JSON.stringify(rec.catalog));catalogProducts=rec.catalog;}
-    if(rec.services&&rec.services.length){localStorage.setItem('ssb_services',JSON.stringify(rec.services));services=rec.services;}
-    if(rec.banners&&Array.isArray(rec.banners)) localStorage.setItem('ssb_banners',JSON.stringify(rec.banners));
-    if(rec.categories&&rec.categories.length) localStorage.setItem('ssb_categories',JSON.stringify(rec.categories));
-    if(typeof renderCatalog==='function') renderCatalog();
-    if(typeof updateCatalogBadge==='function') updateCatalogBadge();
-    if(typeof renderServicesAdmin==='function') renderServicesAdmin();
-    if(typeof renderDashboard==='function') renderDashboard();
-    if(typeof updateSidebarBadges==='function') updateSidebarBadges();
-    jbMsgShow('Pulled from cloud!',true);
-    if(typeof showAdminToast==='function') showAdminToast('Data pulled from cloud!');
-  })
-  .catch(function(e){jbMsgShow('Pull failed: '+e.message,false);});
-};
-
-window.jbDisconnect=function(){
-  if(!confirm('Disconnect from JSONBin?')) return;
-  localStorage.removeItem('ssb_jb_key');
-  localStorage.removeItem('ssb_jb_bin');
-  jbRefreshStatus();
-};
-
-var _jbTimer=null;
-window.jbAutoPush=function(){
-  if(!jbKey()||!jbBin()) return;
-  clearTimeout(_jbTimer);
-  _jbTimer=setTimeout(function(){window.jbPush();},2000);
-};
-
-document.addEventListener('DOMContentLoaded',function(){
-  jbRefreshStatus();
-  if(jbKey()&&jbBin()){
-    fetch(JB_BASE+'/'+jbBin()+'/latest',{headers:{'X-Master-Key':jbKey(),'X-Bin-Private':'false'}})
-    .then(function(r){return r.ok?r.json():null;})
-    .then(function(j){
-      if(!j) return;
-      var rec=j.record||{};
-      if(rec.catalog&&rec.catalog.length) localStorage.setItem('ssb_catalog',JSON.stringify(rec.catalog));
-      if(rec.services&&rec.services.length) localStorage.setItem('ssb_services',JSON.stringify(rec.services));
-      if(rec.banners&&Array.isArray(rec.banners)) localStorage.setItem('ssb_banners',JSON.stringify(rec.banners));
-      if(rec.categories&&rec.categories.length) localStorage.setItem('ssb_categories',JSON.stringify(rec.categories));
-      setTimeout(function(){
-        if(typeof initCatalog==='function') initCatalog();
-        if(typeof renderDashboard==='function') renderDashboard();
-        if(typeof updateSidebarBadges==='function') updateSidebarBadges();
-      },300);
-    })
-    .catch(function(){});
-  }
-});
-</script>
-
-<script>
-function exportUpdatedWebsite(){
-  var catalog    = localStorage.getItem('ssb_catalog')    || '[]';
-  var services   = localStorage.getItem('ssb_services')   || '[]';
-  var banners    = localStorage.getItem('ssb_banners')    || '[]';
-  var categories = localStorage.getItem('ssb_categories') || '[]';
-  fetch('index.html')
-  .then(function(r){return r.text();})
-  .then(function(html){
-    var data='try{'
-      +'if(!localStorage.getItem("ssb_catalog"))    localStorage.setItem("ssb_catalog",    '+JSON.stringify(catalog)+');'
-      +'if(!localStorage.getItem("ssb_services"))   localStorage.setItem("ssb_services",   '+JSON.stringify(services)+');'
-      +'if(!localStorage.getItem("ssb_banners"))    localStorage.setItem("ssb_banners",    '+JSON.stringify(banners)+');'
-      +'if(!localStorage.getItem("ssb_categories")) localStorage.setItem("ssb_categories", '+JSON.stringify(categories)+');'
-      +'}catch(e){}';
-    html=html.replace(/<script id="ssb-data">[\s\S]*?<\/script>/g,'');
-    html=html.replace('</body>','<script id="ssb-data">'+data+'<'+'/'+'script>\n</body>');
-    var blob=new Blob([html],{type:'text/html'});
-    var url=URL.createObjectURL(blob);
-    var a=document.createElement('a');
-    a.href=url; a.download='index.html';
-    document.body.appendChild(a); a.click();
-    document.body.removeChild(a); URL.revokeObjectURL(url);
-    alert('index.html downloaded!\n\nUpload it to GitHub and customers will see your products!');
-  })
-  .catch(function(){alert('Please use the live website link to export.');});
-}
 </script>
 
 </body>
