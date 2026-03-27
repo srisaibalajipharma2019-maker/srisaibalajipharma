@@ -2069,7 +2069,7 @@
       </div>
       <div class="hero-stats">
         <div class="stat-item">
-          <div class="stat-num">25+</div>
+          <div class="stat-num">6+</div>
           <div class="stat-label">Years Experience</div>
         </div>
         <div class="stat-item">
@@ -3141,7 +3141,7 @@
   <div class="footer-bottom">
     <span>© 2025 Sri Sai Balaji Pharma. All rights reserved.</span>
     <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
-      <div class="license-badge">⚕ Licensed Pharmacy — Reg. No. AP-PHARM-1998-XXX</div>
+      <div class="license-badge">⚕ Licensed Pharmacy — Govt. Approved</div>
       <a href="admin.html" style="font-size:0.7rem;color:rgba(255,255,255,0.15);text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(200,169,110,0.5)'" onmouseout="this.style.color='rgba(255,255,255,0.15)'">⚙ Admin</a>
     </div>
   </div>
@@ -3927,8 +3927,23 @@
     if (!email)     { fields[3].focus(); fields[3].style.borderColor = '#c0392b'; return; }
     if (!message)   { fields[5].focus(); fields[5].style.borderColor = '#c0392b'; return; }
 
+    // Collect all field values before clearing
+    var lastName  = (document.getElementById('contactLastName')  || {value:''}).value.trim();
+    var queryType = (document.getElementById('contactQuery')      || {value:''}).value.trim();
+
     fields.forEach(function(f) { f.style.borderColor = ''; });
     fields.forEach(function(f) { if (f.tagName !== 'SELECT') f.value = ''; });
+
+    // Send via WhatsApp
+    var waMsg = '📩 *New Contact Form Message*\n' +
+      '👤 Name: ' + firstName + (lastName ? ' ' + lastName : '') + '\n' +
+      '📞 Phone: ' + phone + '\n' +
+      '📧 Email: ' + email + '\n' +
+      '🔖 Query: ' + (queryType || 'General') + '\n' +
+      '💬 Message: ' + message;
+    setTimeout(function() {
+      window.open('https://wa.me/919963800555?text=' + encodeURIComponent(waMsg), '_blank');
+    }, 800);
 
     var successDiv = document.getElementById('contactSuccess');
     successDiv.style.display = 'block';
