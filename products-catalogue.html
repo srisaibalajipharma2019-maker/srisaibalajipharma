@@ -253,6 +253,100 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .empty-state .icon { font-size:3rem; margin-bottom:12px; }
 .empty-state h3 { font-family:'Cormorant Garamond',serif; font-size:1.5rem; color:var(--text); margin-bottom:8px; }
 
+/* SERVICES STRIP */
+.services-strip {
+  background: var(--surface);
+  border-top: 1px solid rgba(200,169,110,0.15);
+  padding: 40px 5%;
+}
+.services-strip h2 {
+  text-align: center;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  color: var(--gold);
+  margin-bottom: 24px;
+  letter-spacing: 0.5px;
+}
+.services-grid-cat {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.service-card-cat {
+  background: var(--bg);
+  border: 1px solid rgba(200,169,110,0.18);
+  border-radius: 12px;
+  padding: 20px 14px;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.service-card-cat:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+.service-card-cat .svc-icon { font-size: 2rem; margin-bottom: 8px; }
+.service-card-cat .svc-name { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.service-card-cat .svc-desc { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4; }
+
+/* PRESCRIPTION SECTION */
+.rx-section {
+  background: linear-gradient(135deg, rgba(200,169,110,0.06) 0%, rgba(26,77,57,0.06) 100%);
+  border-top: 1px solid rgba(200,169,110,0.15);
+  padding: 44px 5%;
+  text-align: center;
+}
+.rx-section h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.6rem;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.rx-section p { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 24px; max-width: 520px; margin-left: auto; margin-right: auto; }
+.rx-card-cat {
+  background: var(--surface);
+  border: 1px solid rgba(200,169,110,0.2);
+  border-radius: 16px;
+  padding: 28px;
+  max-width: 480px;
+  margin: 0 auto;
+  text-align: left;
+}
+.rx-field { margin-bottom: 14px; }
+.rx-field label { display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+.rx-field input, .rx-field textarea {
+  width: 100%; box-sizing: border-box;
+  background: var(--bg); border: 1px solid rgba(200,169,110,0.25);
+  border-radius: 8px; padding: 10px 12px;
+  font-size: 0.88rem; color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  transition: border-color 0.2s;
+}
+.rx-field input:focus, .rx-field textarea:focus { outline: none; border-color: var(--gold); }
+.rx-field textarea { resize: vertical; min-height: 70px; }
+.rx-drop-cat {
+  border: 2px dashed rgba(200,169,110,0.35);
+  border-radius: 10px; padding: 20px;
+  text-align: center; cursor: pointer;
+  color: var(--text-muted); font-size: 0.82rem;
+  transition: border-color 0.2s, background 0.2s;
+  margin-bottom: 14px;
+}
+.rx-drop-cat:hover { border-color: var(--gold); background: rgba(200,169,110,0.04); }
+.rx-submit-cat {
+  width: 100%; padding: 12px;
+  background: var(--teal); color: white;
+  border: none; border-radius: 10px;
+  font-size: 0.92rem; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  transition: background 0.2s;
+}
+.rx-submit-cat:hover { background: #1a5c45; }
+.rx-success-cat {
+  display: none; text-align: center;
+  padding: 24px; color: var(--teal);
+  font-size: 1rem; font-weight: 600;
+}
+.rx-err-cat { color: #e05555; font-size: 0.8rem; margin-top: 6px; display: none; }
+
 /* FOOTER */
 .footer {
   background:var(--deep);
@@ -410,6 +504,48 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   <div class="pagination" id="paginationBar"></div>
 </div>
 
+<!-- SERVICES STRIP -->
+<div class="services-strip">
+  <h2>Our Services</h2>
+  <div class="services-grid-cat" id="servicesGridCat">
+    <!-- Populated by JS from ssb_services -->
+  </div>
+</div>
+
+<!-- PRESCRIPTION UPLOAD -->
+<div class="rx-section">
+  <h2>📋 Upload Your Prescription</h2>
+  <p>Have a doctor's prescription? Send it to us and we'll prepare your medicines and arrange home delivery.</p>
+  <div class="rx-card-cat">
+    <div id="rxFormCat">
+      <div class="rx-field">
+        <label>Full Name *</label>
+        <input type="text" id="catRxName" placeholder="Your name">
+      </div>
+      <div class="rx-field">
+        <label>Phone Number *</label>
+        <input type="tel" id="catRxPhone" placeholder="+91 XXXXX XXXXX">
+      </div>
+      <div class="rx-field">
+        <label>Notes (optional)</label>
+        <textarea id="catRxNotes" placeholder="Any special instructions..."></textarea>
+      </div>
+      <div class="rx-drop-cat" id="catRxDrop" onclick="document.getElementById('catRxFile').click()">
+        📎 Click to attach prescription photo or PDF<br>
+        <span style="font-size:0.75rem;opacity:0.7;">JPG · PNG · PDF · Max 10MB</span>
+        <input type="file" id="catRxFile" accept="image/*,.pdf" style="display:none" onchange="onCatRxFile(this)">
+        <div id="catRxFileLabel" style="margin-top:6px;font-size:0.8rem;color:var(--gold);display:none;"></div>
+      </div>
+      <div class="rx-err-cat" id="catRxErr"></div>
+      <button class="rx-submit-cat" onclick="submitCatRx()">📤 Submit Prescription</button>
+    </div>
+    <div class="rx-success-cat" id="catRxSuccess">
+      ✅ Prescription Received!<br>
+      <span style="font-size:0.82rem;font-weight:400;color:var(--text-muted);">Our pharmacist will call you within 30 minutes.</span>
+    </div>
+  </div>
+</div>
+
 <div class="footer">
   <p>© Sri Sai Balaji Pharma · 13-3-4/1/A/NR, Near Khajana Jwellers, Chaitanyapuri, Dilsukhnagar, Hyderabad — 500060</p>
   <p style="margin-top:6px;">📞 <a href="tel:+919963800555">+91 99638 00555</a> · Mon–Sat 9AM–11PM · Sun 9AM–9PM</p>
@@ -515,6 +651,7 @@ function loadFromLocal() {
   } catch(e) { products = defaultProducts; }
   var didChange = migrateProducts(products);
   if (didChange) { try { localStorage.setItem('ssb_catalog', JSON.stringify(products)); } catch(e) {} }
+  renderServicesCat();
   applyFilters();
 }
 
@@ -536,10 +673,12 @@ async function loadProducts() {
         }
         if (rec.banners)    localStorage.setItem('ssb_banners',    JSON.stringify(rec.banners));
         if (rec.categories) localStorage.setItem('ssb_categories', JSON.stringify(rec.categories));
+        if (rec.services)   localStorage.setItem('ssb_services',   JSON.stringify(rec.services));
         if (!Array.isArray(products)||!products.length) products = defaultProducts;
         var didChange = migrateProducts(products);
         if (didChange) { try { localStorage.setItem('ssb_catalog', JSON.stringify(products)); } catch(e) {} }
         buildFilterBtns();
+        renderServicesCat();
         applyFilters();
         return;
       }
@@ -905,6 +1044,133 @@ window.showOrderToast = function(el) {
     btn.style.opacity      = show ? '1' : '0';
     btn.style.transform    = show ? 'translateY(0)' : 'translateY(10px)';
     btn.style.pointerEvents= show ? 'auto' : 'none';
+  });
+})();
+
+// ====== SERVICES (synced from ssb_services) ======
+var defaultServicesCat = [
+  { icon: '💊', name: 'Prescription Filling',  desc: 'Fast, accurate dispensing of all prescriptions.' },
+  { icon: '🚚', name: 'Home Delivery',          desc: 'Medicines delivered to your doorstep.' },
+  { icon: '🩺', name: 'Health Consultations',   desc: 'Expert pharmacist guidance anytime.' },
+  { icon: '🧪', name: 'Diagnostics',            desc: 'Basic health tests and screenings.' },
+  { icon: '🫀', name: 'Chronic Care',           desc: 'Ongoing support for long-term conditions.' },
+  { icon: '🌿', name: 'Ayurvedic Range',        desc: 'Authentic Ayurvedic medicines & wellness.' }
+];
+
+function renderServicesCat() {
+  var grid = document.getElementById('servicesGridCat');
+  if (!grid) return;
+  var raw = localStorage.getItem('ssb_services');
+  var list = [];
+  try { list = raw ? JSON.parse(raw) : []; } catch(e) { list = []; }
+  if (!Array.isArray(list) || !list.length) list = defaultServicesCat;
+  grid.innerHTML = list.map(function(s) {
+    return '<div class="service-card-cat">' +
+      '<div class="svc-icon">' + (s.icon || '🏥') + '</div>' +
+      '<div class="svc-name">' + (s.name || '') + '</div>' +
+      '<div class="svc-desc">' + (s.desc || '') + '</div>' +
+      '</div>';
+  }).join('');
+}
+renderServicesCat();
+
+// ====== PRESCRIPTION UPLOAD (synced to ssb_prescriptions) ======
+var CAT_RX_KEY = 'ssb_prescriptions';
+var catRxFileData = null;
+var catRxFileName = '';
+
+function catRxLoadAll() {
+  try { return JSON.parse(localStorage.getItem(CAT_RX_KEY) || '[]'); } catch(e) { return []; }
+}
+function catRxSaveAll(arr) {
+  try { localStorage.setItem(CAT_RX_KEY, JSON.stringify(arr)); } catch(e) {}
+}
+
+function onCatRxFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var allowed = ['image/jpeg','image/png','image/jpg','application/pdf'];
+  if (!allowed.includes(file.type)) { showCatRxErr('Please upload a JPG, PNG, or PDF.'); input.value=''; catRxFileData=null; return; }
+  if (file.size > 10 * 1024 * 1024) { showCatRxErr('File too large. Max 10MB.'); input.value=''; catRxFileData=null; return; }
+  catRxFileName = file.name;
+  var lbl = document.getElementById('catRxFileLabel');
+  lbl.textContent = '📎 ' + file.name; lbl.style.display = 'block';
+  hideCatRxErr();
+  var reader = new FileReader();
+  reader.onload = function(e) { catRxFileData = e.target.result; };
+  reader.readAsDataURL(file);
+}
+
+function showCatRxErr(msg) {
+  var el = document.getElementById('catRxErr');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+function hideCatRxErr() {
+  var el = document.getElementById('catRxErr');
+  if (el) { el.style.display = 'none'; el.textContent = ''; }
+}
+
+function submitCatRx() {
+  var name  = (document.getElementById('catRxName').value  || '').trim();
+  var phone = (document.getElementById('catRxPhone').value || '').trim();
+  var notes = (document.getElementById('catRxNotes').value || '').trim();
+  hideCatRxErr();
+  if (!name)  { showCatRxErr('Please enter your full name.');    return; }
+  if (!phone) { showCatRxErr('Please enter your phone number.'); return; }
+
+  var rx = {
+    id:       Date.now(),
+    name:     name,
+    phone:    phone,
+    notes:    notes,
+    fileName: catRxFileName || '(No file)',
+    fileData: catRxFileData || null,
+    date:     new Date().toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }),
+    time:     new Date().toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }),
+    status:   'New',
+    source:   'Catalogue Page'
+  };
+
+  var all = catRxLoadAll();
+  all.unshift(rx);
+  catRxSaveAll(all);
+
+  // Show success
+  document.getElementById('rxFormCat').style.display  = 'none';
+  document.getElementById('catRxSuccess').style.display = 'block';
+
+  // WhatsApp notification
+  var msg = encodeURIComponent(
+    'Hello Sri Sai Balaji Pharma!\n' +
+    'New prescription submitted (Catalogue Page):\n' +
+    '👤 Name: '  + name  + '\n' +
+    '📞 Phone: ' + phone + '\n' +
+    (notes ? '📝 Notes: ' + notes + '\n' : '') +
+    '📎 File: '  + (catRxFileName || 'Not attached') + '\n' +
+    'Please process this order. Thank you!'
+  );
+  setTimeout(function() {
+    window.open('https://wa.me/919963800555?text=' + msg, '_blank');
+  }, 1200);
+
+  // Reset
+  catRxFileData = null; catRxFileName = '';
+  document.getElementById('catRxFile').value = '';
+}
+
+// Drag & drop for catalogue prescription
+(function() {
+  var drop = document.getElementById('catRxDrop');
+  if (!drop) return;
+  drop.addEventListener('dragover',  function(e) { e.preventDefault(); drop.style.borderColor='var(--gold)'; });
+  drop.addEventListener('dragleave', function()  { drop.style.borderColor=''; });
+  drop.addEventListener('drop',      function(e) {
+    e.preventDefault(); drop.style.borderColor='';
+    var file = e.dataTransfer.files[0];
+    if (!file) return;
+    var inp = document.getElementById('catRxFile');
+    var dt = new DataTransfer(); dt.items.add(file); inp.files = dt.files;
+    onCatRxFile(inp);
   });
 })();
 </script>
